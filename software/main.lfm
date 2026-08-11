@@ -557,7 +557,7 @@ object MainForm: TMainForm
   object MPHexEditorEx: TMPHexEditorEx
     Cursor = crIBeam
     Left = 160
-    Height = 293
+    Height = 298
     Top = 34
     Width = 693
     CreateBackup = False
@@ -670,7 +670,7 @@ object MainForm: TMainForm
   end
   object GroupFBPanel: TGroupBox
     Left = 160
-    Top = 331
+    Top = 336
     Width = 693
     Height = 72
     Caption = 'FlashBridge VIO'
@@ -768,6 +768,7 @@ object MainForm: TMainForm
     Top = 8
   end
   object StatusBar: TStatusBar
+    Align = alBottom
     Anchors = [akLeft, akRight, akBottom]
     Left = 0
     Height = 23
