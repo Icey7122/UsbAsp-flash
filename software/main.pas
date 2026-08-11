@@ -2127,6 +2127,8 @@ var
   V, T, D: double;
   sT: string;
   Remaining: integer;
+  Restored: boolean;
+  i: integer;
 begin
   FB := FBFrontHW;
   if (FB = nil) or (not FB.VIOConnected) then
@@ -2160,11 +2162,19 @@ begin
     begin
       FBHoldUntil := 0;
       BtnFBSet.Enabled := true;
-      if FB.VIOGetStatus(V, T, D) then
-        LblFBVIO.Caption := Format('已恢复 V %s', [FormatFloat('0.000', V)])
-      else
+      Restored := false;
+      for i := 1 to 3 do
       begin
-        BtnFBSet.Enabled := true;
+        if FB.VIOGetStatusEx(V, T, D, 200) then
+        begin
+          Restored := true;
+          LblFBVIO.Caption := Format('已恢复 V %s', [FormatFloat('0.000', V)]);
+          Break;
+        end;
+        if i < 3 then Sleep(100);
+      end;
+      if not Restored then
+      begin
         LblFBVIO.Caption := '已到期，电压应已自动恢复，请重新连接确认';
         TimerFBVIO.Enabled := false;
       end;

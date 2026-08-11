@@ -52,6 +52,8 @@ type
     function VIOConnect(const Port: string): boolean;
     procedure VIODisconnect;
     function VIOGetStatus(var V, Target, Duty: double): boolean;
+    function VIOGetStatusEx(var V, Target, Duty: double;
+      TimeoutMs: integer): boolean;
     function VIOSetMillivolts(mv: integer): boolean;
     function VIOSetMillivoltsHold(mv, seconds: integer): boolean;
     function VIOWaitStable(TargetMV: integer; TimeoutMs: integer): boolean;
@@ -313,6 +315,12 @@ begin
 end;
 
 function TFlashBridgeHardware.VIOGetStatus(var V, Target, Duty: double): boolean;
+begin
+  Result := VIOGetStatusEx(V, Target, Duty, 700);
+end;
+
+function TFlashBridgeHardware.VIOGetStatusEx(var V, Target, Duty: double;
+  TimeoutMs: integer): boolean;
 var
   S, Err: string;
 begin
@@ -321,7 +329,7 @@ begin
   if not FVIOConnected then Exit;
   FSerial.Purge;
   FSerial.SendString(FB_CMD_VIO);
-  S := ReadUntilPrompt(700);
+  S := ReadUntilPrompt(TimeoutMs);
   Result := ParseVIOStatus(S, V, Target, Duty, Err);
   if not Result then FVIOError := Err;
 end;
