@@ -754,6 +754,7 @@ object MainForm: TMainForm
       OnClick = BtnFBPresetClick
     end
     object LblFBVIO: TLabel
+      Layout = tlCenter
       Anchors = [akLeft, akRight]
       Left = 500
       Top = 18
