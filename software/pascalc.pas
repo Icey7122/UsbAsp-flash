@@ -19,6 +19,9 @@ const _pascalc : string = #10#10+
   //tifa: добавлена работа с hex константами($FF $FA)
   //tifa: кроссплатформенные правки
 
+const
+  INVALID_HANDLE_VALUE = LongWord($FFFFFFFF);
+
 type TToken =
   (tEMPTY,    tVR,       tCON,      tTRUE,     tFALSE,
    tEQU,      tOR,       tAND,      tNOT,      tXOR,
