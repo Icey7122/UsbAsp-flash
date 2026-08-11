@@ -558,6 +558,7 @@ object MainForm: TMainForm
     Cursor = crIBeam
     Left = 160
     Height = 315
+    Anchors = [akTop, akLeft, akRight]
     Top = 34
     Width = 693
     CreateBackup = False
@@ -677,6 +678,7 @@ object MainForm: TMainForm
     Caption = 'FlashBridge VIO'
     TabOrder = 4
     Visible = False
+    Anchors = [akTop, akLeft, akRight]
     object ComboFBPort: TComboBox
       Left = 8
       Top = 17
@@ -752,6 +754,7 @@ object MainForm: TMainForm
       OnClick = BtnFBPresetClick
     end
     object LblFBVIO: TLabel
+      Anchors = [akLeft, akRight]
       Left = 500
       Top = 19
       Width = 185
