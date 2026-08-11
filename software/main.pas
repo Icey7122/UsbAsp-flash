@@ -275,7 +275,6 @@ var
   FBHoldSeconds: integer = 30;
   FBHoldUntil: TDateTime = 0;
   FBHoldMV: integer = 0;
-  FBHoldExpiredCount: integer = 0;
 
 procedure CheckChipVIOVoltage(const ChipName: string);
 
@@ -2035,7 +2034,6 @@ begin
     FB.VIODisconnect;
     TimerFBVIO.Enabled := false;
     FBHoldUntil := 0;
-    FBHoldExpiredCount := 0;
     BtnFBConnect.Caption := '连接';
     LblFBVIO.Caption := '未连接';
   end
@@ -2096,7 +2094,6 @@ begin
     // 低于 1.4V 时 V002 可能收不到命令，用固件限时保持保证自动恢复
     FBHoldUntil := Now + holdSec / SecsPerDay;
     FBHoldMV := mv;
-    FBHoldExpiredCount := 0;
     if FB.VIOSetMillivoltsHold(mv, holdSec) then
       LblFBVIO.Caption := Format('保持中 %dmV | 剩余 %ds', [mv, holdSec])
     else
@@ -2106,7 +2103,6 @@ begin
   else
   begin
     FBHoldUntil := 0;
-    FBHoldExpiredCount := 0;
     if FB.VIOSetMillivolts(mv) then
     begin
       LblFBVIO.Caption := '已设置 ' + IntToStr(mv) + 'mV';
@@ -2148,34 +2144,18 @@ begin
     Remaining := Round((FBHoldUntil - Now) * SecsPerDay);
     if Remaining > 0 then
     begin
-      if FB.VIOGetStatus(V, T, D) then
-        LblFBVIO.Caption := Format('保持中 %dmV | 剩余 %ds | V %s',
-          [FBHoldMV, Remaining, FormatFloat('0.000', V)])
-      else
-        LblFBVIO.Caption := Format('保持中 %dmV | 剩余 %ds（通讯中断）',
-          [FBHoldMV, Remaining]);
+      // 倒计时期间不做任何串口通讯，避免超时阻塞界面
+      LblFBVIO.Caption := Format('保持中 %dmV | 剩余 %ds', [FBHoldMV, Remaining]);
     end
     else
     begin
+      FBHoldUntil := 0;
       if FB.VIOGetStatus(V, T, D) then
-      begin
-        FBHoldUntil := 0;
-        FBHoldExpiredCount := 0;
-        LblFBVIO.Caption := Format('已恢复 V %s', [FormatFloat('0.000', V)]);
-      end
+        LblFBVIO.Caption := Format('已恢复 V %s', [FormatFloat('0.000', V)])
       else
       begin
-        Inc(FBHoldExpiredCount);
-        if FBHoldExpiredCount > 10 then
-        begin
-          FBHoldUntil := 0;
-          FBHoldExpiredCount := 0;
-          LblFBVIO.Caption := '已到期，通讯中断，请重新连接';
-          TimerFBVIO.Enabled := false;
-        end
-        else
-          LblFBVIO.Caption := Format('已到期，等待电压恢复 (%ds)',
-            [10 - FBHoldExpiredCount + 1]);
+        LblFBVIO.Caption := '已到期，电压应已自动恢复，请重新连接确认';
+        TimerFBVIO.Enabled := false;
       end;
     end;
     Exit;
