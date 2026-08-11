@@ -273,6 +273,9 @@ var
   FlashBridge_COMPort: string;
   FlashBridge_VIO_mV: integer = 2500;
   FBHoldSeconds: integer = 30;
+  FBHoldUntil: TDateTime = 0;
+  FBHoldMV: integer = 0;
+  FBHoldExpiredCount: integer = 0;
 
 procedure CheckChipVIOVoltage(const ChipName: string);
 
@@ -2031,6 +2034,8 @@ begin
   begin
     FB.VIODisconnect;
     TimerFBVIO.Enabled := false;
+    FBHoldUntil := 0;
+    FBHoldExpiredCount := 0;
     BtnFBConnect.Caption := '连接';
     LblFBVIO.Caption := '未连接';
   end
@@ -2089,14 +2094,19 @@ begin
   if (mv < 1400) and (holdSec > 0) then
   begin
     // 低于 1.4V 时 V002 可能收不到命令，用固件限时保持保证自动恢复
-    TimerFBVIO.Enabled := false; // 通讯可能中断，暂停轮询
+    FBHoldUntil := Now + holdSec / SecsPerDay;
+    FBHoldMV := mv;
+    FBHoldExpiredCount := 0;
     if FB.VIOSetMillivoltsHold(mv, holdSec) then
-      LblFBVIO.Caption := Format('已设置 %dmV，保持 %ds，期间通讯中断，到期自动恢复', [mv, holdSec])
+      LblFBVIO.Caption := Format('保持中 %dmV | 剩余 %ds', [mv, holdSec])
     else
       LblFBVIO.Caption := Format('已发送 %dmV(%ds)，通讯可能中断', [mv, holdSec]);
+    TimerFBVIO.Enabled := true; // 倒计时
   end
   else
   begin
+    FBHoldUntil := 0;
+    FBHoldExpiredCount := 0;
     if FB.VIOSetMillivolts(mv) then
     begin
       LblFBVIO.Caption := '已设置 ' + IntToStr(mv) + 'mV';
@@ -2112,13 +2122,65 @@ var
   FB: TFlashBridgeHardware;
   V, T, D: double;
   sT: string;
+  Remaining: integer;
 begin
   FB := FBFrontHW;
   if (FB = nil) or (not FB.VIOConnected) then
   begin
+    if FBHoldUntil <> 0 then
+    begin
+      Remaining := Round((FBHoldUntil - Now) * SecsPerDay);
+      if Remaining > 0 then
+        LblFBVIO.Caption := Format('保持中 %dmV | 剩余 %ds', [FBHoldMV, Remaining])
+      else
+      begin
+        FBHoldUntil := 0;
+        LblFBVIO.Caption := '已到期，请重新连接确认';
+      end;
+      Exit;
+    end;
     TimerFBVIO.Enabled := false;
     Exit;
   end;
+
+  if FBHoldUntil <> 0 then
+  begin
+    Remaining := Round((FBHoldUntil - Now) * SecsPerDay);
+    if Remaining > 0 then
+    begin
+      if FB.VIOGetStatus(V, T, D) then
+        LblFBVIO.Caption := Format('保持中 %dmV | 剩余 %ds | V %s',
+          [FBHoldMV, Remaining, FormatFloat('0.000', V)])
+      else
+        LblFBVIO.Caption := Format('保持中 %dmV | 剩余 %ds（通讯中断）',
+          [FBHoldMV, Remaining]);
+    end
+    else
+    begin
+      if FB.VIOGetStatus(V, T, D) then
+      begin
+        FBHoldUntil := 0;
+        FBHoldExpiredCount := 0;
+        LblFBVIO.Caption := Format('已恢复 V %s', [FormatFloat('0.000', V)]);
+      end
+      else
+      begin
+        Inc(FBHoldExpiredCount);
+        if FBHoldExpiredCount > 10 then
+        begin
+          FBHoldUntil := 0;
+          FBHoldExpiredCount := 0;
+          LblFBVIO.Caption := '已到期，通讯中断，请重新连接';
+          TimerFBVIO.Enabled := false;
+        end
+        else
+          LblFBVIO.Caption := Format('已到期，等待电压恢复 (%ds)',
+            [10 - FBHoldExpiredCount + 1]);
+      end;
+    end;
+    Exit;
+  end;
+
   if FB.VIOGetStatus(V, T, D) then
   begin
     FBFailCount := 0;
