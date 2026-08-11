@@ -44,6 +44,8 @@ type
     ComboFBVolt: TComboBox;
     LblFBMV: TLabel;
     BtnFBSet: TButton;
+    EditFBHold: TEdit;
+    LblFBHoldUnit: TLabel;
     LblFBVIO: TLabel;
     TimerFBVIO: TTimer;
     MenuFT232SPIClock: TMenuItem;
@@ -270,6 +272,7 @@ var
   Arduino_BaudRate: integer = 921600;
   FlashBridge_COMPort: string;
   FlashBridge_VIO_mV: integer = 2500;
+  FBHoldSeconds: integer = 30;
 
 procedure CheckChipVIOVoltage(const ChipName: string);
 
@@ -1854,6 +1857,7 @@ begin
     AsProgrammer.Current_HW := CHW_FLASHBRIDGE;
     MainForm.GroupFBPanel.Visible := true;
     MainForm.ComboFBVolt.Text := IntToStr(FlashBridge_VIO_mV);
+    MainForm.EditFBHold.Text := IntToStr(FBHoldSeconds);
   end
   else
     MainForm.GroupFBPanel.Visible := false;
@@ -2063,7 +2067,7 @@ end;
 procedure TMainForm.BtnFBSetClick(Sender: TObject);
 var
   FB: TFlashBridgeHardware;
-  mv: integer;
+  mv, holdSec: integer;
 begin
   FB := FBFrontHW;
   if (FB = nil) or (not FB.VIOConnected) then Exit;
@@ -2077,14 +2081,29 @@ begin
     LblFBVIO.Caption := '范围 1200-3300mV';
     Exit;
   end;
+  if not TryStrToInt(Trim(EditFBHold.Text), holdSec) then holdSec := 0;
+  if holdSec < 0 then holdSec := 0;
+  if holdSec > 3600 then holdSec := 3600;
+  FBHoldSeconds := holdSec;
   FlashBridge_VIO_mV := mv;
-  if FB.VIOSetMillivolts(mv) then
+  if (mv < 1800) and (holdSec > 0) then
   begin
-    LblFBVIO.Caption := '已设置 ' + IntToStr(mv) + 'mV';
-    TimerFBVIOTimer(Sender);
+    // 低于 1.8V 时 V002 可能失联，用固件限时保持保证自动恢复
+    if FB.VIOSetMillivoltsHold(mv, holdSec) then
+      LblFBVIO.Caption := Format('已设置 %dmV，保持 %ds，自动恢复', [mv, holdSec])
+    else
+      LblFBVIO.Caption := Format('已发送 %dmV(%ds)，通讯可能中断', [mv, holdSec]);
   end
   else
-    LblFBVIO.Caption := FB.VIOError;
+  begin
+    if FB.VIOSetMillivolts(mv) then
+    begin
+      LblFBVIO.Caption := '已设置 ' + IntToStr(mv) + 'mV';
+      TimerFBVIOTimer(Sender);
+    end
+    else
+      LblFBVIO.Caption := FB.VIOError;
+  end;
 end;
 
 procedure TMainForm.TimerFBVIOTimer(Sender: TObject);
@@ -3491,6 +3510,7 @@ begin
     TDOMElement(ParentNode).SetAttribute('arduino_baudrate', IntToStr(Arduino_BaudRate));
     TDOMElement(ParentNode).SetAttribute('flashbridge_comport', FlashBridge_COMPort);
     TDOMElement(ParentNode).SetAttribute('flashbridge_vio_mv', IntToStr(FlashBridge_VIO_mV));
+    TDOMElement(ParentNode).SetAttribute('flashbridge_hold_seconds', IntToStr(FBHoldSeconds));
 
     Node.Appendchild(parentNode);
 
@@ -3641,6 +3661,14 @@ begin
       begin
         OptVal := UTF16ToUTF8(Node.Attributes.GetNamedItem('flashbridge_vio_mv').NodeValue);
         FlashBridge_VIO_mV := StrToInt(OptVal);
+      end;
+
+      if  Node.Attributes.GetNamedItem('flashbridge_hold_seconds') <> nil then
+      begin
+        OptVal := UTF16ToUTF8(Node.Attributes.GetNamedItem('flashbridge_hold_seconds').NodeValue);
+        FBHoldSeconds := StrToInt(OptVal);
+        if FBHoldSeconds < 0 then FBHoldSeconds := 0;
+        if FBHoldSeconds > 3600 then FBHoldSeconds := 3600;
       end;
 
     end;

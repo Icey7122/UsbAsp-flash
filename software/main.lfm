@@ -719,12 +719,27 @@ object MainForm: TMainForm
       TabOrder = 2
       OnClick = BtnFBSetClick
     end
+    object EditFBHold: TEdit
+      Left = 262
+      Top = 15
+      Width = 40
+      Height = 22
+      TabOrder = 3
+      Text = '30'
+    end
+    object LblFBHoldUnit: TLabel
+      Left = 306
+      Top = 20
+      Width = 12
+      Height = 17
+      Caption = 's'
+    end
     object LblFBVIO: TLabel
       Layout = tlCenter
       Anchors = [akLeft, akRight]
-      Left = 270
+      Left = 330
       Top = 28
-      Width = 400
+      Width = 350
       Height = 17
       Caption = '未连接'
     end

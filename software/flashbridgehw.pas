@@ -53,6 +53,7 @@ type
     procedure VIODisconnect;
     function VIOGetStatus(var V, Target, Duty: double): boolean;
     function VIOSetMillivolts(mv: integer): boolean;
+    function VIOSetMillivoltsHold(mv, seconds: integer): boolean;
     function VIOWaitStable(TargetMV: integer; TimeoutMs: integer): boolean;
     function FindV002Port: string;
     property VIOConnected: boolean read FVIOConnected;
@@ -340,6 +341,31 @@ begin
   end;
   FSerial.Purge;
   FSerial.SendString('vio ' + IntToStr(mv) + #13);
+  S := ReadUntilPrompt(700);
+  Result := ParseVIOStatus(S, V, T, D, Err);
+  if not Result then FVIOError := Err;
+end;
+
+function TFlashBridgeHardware.VIOSetMillivoltsHold(mv, seconds: integer): boolean;
+var
+  S, Err: string;
+  V, T, D: double;
+begin
+  Result := false;
+  FVIOError := '';
+  if not FVIOConnected then Exit;
+  if (mv < FB_VIO_MIN_MV) or (mv > FB_VIO_MAX_MV) then
+  begin
+    FVIOError := 'range 1200-3300';
+    Exit;
+  end;
+  if seconds <= 0 then
+  begin
+    FVIOError := 'hold seconds > 0';
+    Exit;
+  end;
+  FSerial.Purge;
+  FSerial.SendString(Format('vio %d %d' + #13, [mv, seconds]));
   S := ReadUntilPrompt(700);
   Result := ParseVIOStatus(S, V, T, D, Err);
   if not Result then FVIOError := Err;
