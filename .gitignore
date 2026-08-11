@@ -1,0 +1,11 @@
+# Lazarus build outputs
+software/lib/
+software/*.exe
+software/*.o
+software/*.ppu
+
+# Lazarus session files
+*.lps
+
+# Temporary diagnostic tools
+tools/
