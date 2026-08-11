@@ -275,7 +275,7 @@ var
   FBHoldUntil: TDateTime = 0;
   FBHoldMV: integer = 0;
 
-procedure CheckChipVIOVoltage(const ChipName: string);
+procedure CheckChipVIOVoltage(const ChipName: string; VCCMV: integer);
 
 implementation
 
@@ -2003,21 +2003,33 @@ begin
     Result := AsProgrammer.Programmer as TFlashBridgeHardware;
 end;
 
-procedure CheckChipVIOVoltage(const ChipName: string);
+procedure CheckChipVIOVoltage(const ChipName: string; VCCMV: integer);
 var
   FB: TFlashBridgeHardware;
 begin
-  if (Pos('1.8V', UpperCase(ChipName)) > 0) and
-     (AsProgrammer.Current_HW = CHW_FLASHBRIDGE) and
-     (AsProgrammer.Programmer is TFlashBridgeHardware) then
+  if (AsProgrammer.Current_HW <> CHW_FLASHBRIDGE) or
+     (not (AsProgrammer.Programmer is TFlashBridgeHardware)) then Exit;
+  FB := AsProgrammer.Programmer as TFlashBridgeHardware;
+  if not FB.VIOConnected then Exit;
+
+  // 优先 chiplist 的 vcc 属性，其次 _1.8V 后缀
+  if VCCMV = 0 then
   begin
-    FB := AsProgrammer.Programmer as TFlashBridgeHardware;
-    if FB.VIOConnected and FB.VIOSetMillivolts(1800) then
-    begin
-      FlashBridge_VIO_mV := 1800;
-      MainForm.ComboFBVolt.Text := '1800';
-      MainForm.LblFBVIO.Caption := '已自动设为 1800mV (1.8V 芯片)';
-    end;
+    if Pos('1.8V', UpperCase(ChipName)) > 0 then VCCMV := 1800
+    else Exit;
+  end;
+
+  if (VCCMV < FB_VIO_MIN_MV) or (VCCMV > FB_VIO_MAX_MV) then
+  begin
+    MainForm.LblFBVIO.Caption := Format('VIO 不支持 %dmV', [VCCMV]);
+    Exit;
+  end;
+
+  if FB.VIOSetMillivolts(VCCMV) then
+  begin
+    FlashBridge_VIO_mV := VCCMV;
+    MainForm.ComboFBVolt.Text := IntToStr(VCCMV);
+    MainForm.LblFBVIO.Caption := Format('已按芯片电压自动设为 %dmV', [VCCMV]);
   end;
 end;
 

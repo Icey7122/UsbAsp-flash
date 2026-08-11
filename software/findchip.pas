@@ -97,6 +97,7 @@ var
   Node, ChipNode: TDOMNode;
   j, i: integer;
   cs: string;
+  VCCMV: integer = 0;
 begin
   if XMLfile <> nil then
   begin
@@ -192,9 +193,13 @@ begin
                  MainForm.ComboBox_chip_scriptrun.Items.Clear;
                end;
 
+               if ChipNode.Attributes.GetNamedItem('vcc') <> nil then
+                 VCCMV := Round(StrToFloat(StringReplace(
+                   UTF16ToUTF8(ChipNode.Attributes.GetNamedItem('vcc').NodeValue),
+                   ',', '.', [rfReplaceAll])) * 1000);
 
                 MainForm.LabelChipName.Caption := CurrentICParam.Name;
-                CheckChipVIOVoltage(CurrentICParam.Name);
+                CheckChipVIOVoltage(CurrentICParam.Name, VCCMV);
 
                 if CurrentICParam.MWAddLen > 0 then
                   MainForm.ComboMWBitLen.Text := IntToStr(CurrentICParam.MWAddLen)
