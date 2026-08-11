@@ -204,6 +204,8 @@ type
     procedure ButtonVerifyClick(Sender: TObject);
     procedure ButtonBlockClick(Sender: TObject);
     procedure ButtonReadIDClick(Sender: TObject);
+    function DoSpiReadID: boolean;
+    procedure ReadIDWithVIOLadder;
     procedure ButtonOpenHexClick(Sender: TObject);
     procedure ButtonSaveHexClick(Sender: TObject);
     procedure ButtonCancelClick(Sender: TObject);
@@ -2791,6 +2793,23 @@ end;
 
 procedure TMainForm.ButtonReadIDClick(Sender: TObject);
 var
+  FB: TFlashBridgeHardware;
+begin
+  if (AsProgrammer.Current_HW = CHW_FLASHBRIDGE) and MainForm.RadioSPI.Checked
+     and (ComboSPICMD.ItemIndex <> SPI_CMD_KB) then
+  begin
+    FB := FBFrontHW;
+    if (FB <> nil) and FB.VIOConnected then
+    begin
+      ReadIDWithVIOLadder;
+      Exit;
+    end;
+  end;
+  DoSpiReadID;
+end;
+
+function TMainForm.DoSpiReadID: boolean;
+var
   XMLfile: TXMLDocument;
   ID: MEMORY_ID;
   IDstr9FH: string[6];
@@ -2798,6 +2817,7 @@ var
   IDstrABH: string[6];
   IDstr15H: string[4];
 begin
+  Result := false;
   try
     if not OpenDevice() then exit;
     LockControl();
@@ -2856,6 +2876,7 @@ begin
 
       if ChipSearchForm.ListBoxChips.Items.Capacity > 0 then
       begin
+        Result := true;
         ChipSearchForm.Show;
         LogPrint('ID(9F): '+ IDstr9FH);
         LogPrint('ID(90): '+ IDstr90H);
@@ -2874,6 +2895,44 @@ begin
     UnlockControl();
   end;
 
+end;
+
+procedure TMainForm.ReadIDWithVIOLadder;
+const
+  Steps: array[0..2] of integer = (1800, 2500, 3300);
+var
+  FB: TFlashBridgeHardware;
+  i: integer;
+begin
+  FB := FBFrontHW;
+  if FB = nil then Exit;
+  TimerFBVIO.Enabled := false; // 探测期间暂停轮询，避免串口干扰
+  try
+    for i := 0 to High(Steps) do
+    begin
+      if FB.VIOSetMillivolts(Steps[i]) then
+      begin
+        FlashBridge_VIO_mV := Steps[i];
+        ComboFBVolt.Text := IntToStr(Steps[i]);
+        LblFBVIO.Caption := Format('检测中 %dmV', [Steps[i]]);
+        Application.ProcessMessages;
+        if DoSpiReadID then
+        begin
+          LblFBVIO.Caption := Format('已识别 @ %dmV', [Steps[i]]);
+          Exit;
+        end;
+      end;
+    end;
+    // 全部未识别，回到 1.8V
+    if FB.VIOSetMillivolts(1800) then
+    begin
+      FlashBridge_VIO_mV := 1800;
+      ComboFBVolt.Text := '1800';
+    end;
+    LblFBVIO.Caption := '未识别，已回到 1800mV';
+  finally
+    if FB.VIOConnected then TimerFBVIO.Enabled := true;
+  end;
 end;
 
 procedure TMainForm.ButtonOpenHexClick(Sender: TObject);
