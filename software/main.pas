@@ -40,16 +40,11 @@ type
     MenuHWFT232H: TMenuItem;
     MenuHWFlashBridge: TMenuItem;
     GroupFBPanel: TGroupBox;
-    ComboFBPort: TComboBox;
     BtnFBConnect: TButton;
-    EditFBTarget: TEdit;
+    ComboFBVolt: TComboBox;
+    LblFBMV: TLabel;
     BtnFBSet: TButton;
-    BtnFB12: TButton;
-    BtnFB18: TButton;
-    BtnFB25: TButton;
-    BtnFB33: TButton;
     LblFBVIO: TLabel;
-    BtnFBScan: TButton;
     TimerFBVIO: TTimer;
     MenuFT232SPIClock: TMenuItem;
     MenuFT232SPI30Mhz: TMenuItem;
@@ -192,8 +187,6 @@ type
     procedure MenuHWFlashBridgeClick(Sender: TObject);
     procedure BtnFBConnectClick(Sender: TObject);
     procedure BtnFBSetClick(Sender: TObject);
-    procedure BtnFBPresetClick(Sender: TObject);
-    procedure BtnFBScanClick(Sender: TObject);
     procedure TimerFBVIOTimer(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -273,7 +266,6 @@ var
 
   Arduino_COMPort: string;
   Arduino_BaudRate: integer = 921600;
-  FlashBridge_COMPort: string;
   FlashBridge_VIO_mV: integer = 2500;
 
 implementation
@@ -1856,8 +1848,7 @@ begin
     MainForm.MenuMicrowire.Enabled:= false;
     AsProgrammer.Current_HW := CHW_FLASHBRIDGE;
     MainForm.GroupFBPanel.Visible := true;
-    MainForm.ComboFBPort.Text := FlashBridge_COMPort;
-    MainForm.EditFBTarget.Text := IntToStr(FlashBridge_VIO_mV);
+    MainForm.ComboFBVolt.Text := IntToStr(FlashBridge_VIO_mV);
   end
   else
     MainForm.GroupFBPanel.Visible := false;
@@ -2005,6 +1996,7 @@ end;
 procedure TMainForm.BtnFBConnectClick(Sender: TObject);
 var
   FB: TFlashBridgeHardware;
+  Port: string;
 begin
   FB := FBFrontHW;
   if FB = nil then Exit;
@@ -2017,20 +2009,15 @@ begin
   end
   else
   begin
-    FlashBridge_COMPort := Trim(ComboFBPort.Text);
-    if FlashBridge_COMPort = '' then
+    LblFBVIO.Caption := '正在检测 COM 口...';
+    Application.ProcessMessages;
+    Port := FB.FindV002Port;
+    if Port = '' then
     begin
-      LblFBVIO.Caption := '正在检测 COM 口...';
-      Application.ProcessMessages;
-      FlashBridge_COMPort := FB.FindV002Port;
-      if FlashBridge_COMPort = '' then
-      begin
-        LblFBVIO.Caption := '未找到 FlashBridge';
-        Exit;
-      end;
-      ComboFBPort.Text := FlashBridge_COMPort;
+      LblFBVIO.Caption := '未找到 FlashBridge';
+      Exit;
     end;
-    if FB.VIOConnect(FlashBridge_COMPort) then
+    if FB.VIOConnect(Port) then
     begin
       FBFailCount := 0;
       BtnFBConnect.Caption := '断开';
@@ -2042,31 +2029,6 @@ begin
   end;
 end;
 
-procedure TMainForm.BtnFBScanClick(Sender: TObject);
-var
-  FB: TFlashBridgeHardware;
-  Port: string;
-begin
-  FB := FBFrontHW;
-  if FB = nil then Exit;
-  if FB.VIOConnected then
-  begin
-    LblFBVIO.Caption := '请先断开再自动检测';
-    Exit;
-  end;
-  LblFBVIO.Caption := '正在检测 COM 口...';
-  Application.ProcessMessages;
-  Port := FB.FindV002Port;
-  if Port = '' then
-  begin
-    LblFBVIO.Caption := '未找到 FlashBridge';
-    Exit;
-  end;
-  ComboFBPort.Text := Port;
-  FlashBridge_COMPort := Port;
-  BtnFBConnectClick(Sender);
-end;
-
 procedure TMainForm.BtnFBSetClick(Sender: TObject);
 var
   FB: TFlashBridgeHardware;
@@ -2074,7 +2036,7 @@ var
 begin
   FB := FBFrontHW;
   if (FB = nil) or (not FB.VIOConnected) then Exit;
-  if not TryStrToInt(Trim(EditFBTarget.Text), mv) then
+  if not TryStrToInt(Trim(ComboFBVolt.Text), mv) then
   begin
     LblFBVIO.Caption := '电压格式错误';
     Exit;
@@ -2092,12 +2054,6 @@ begin
   end
   else
     LblFBVIO.Caption := FB.VIOError;
-end;
-
-procedure TMainForm.BtnFBPresetClick(Sender: TObject);
-begin
-  EditFBTarget.Text := IntToStr(TButton(Sender).Tag);
-  BtnFBSetClick(Sender);
 end;
 
 procedure TMainForm.TimerFBVIOTimer(Sender: TObject);
@@ -3438,7 +3394,6 @@ begin
 
     TDOMElement(ParentNode).SetAttribute('arduino_comport', Arduino_COMPort);
     TDOMElement(ParentNode).SetAttribute('arduino_baudrate', IntToStr(Arduino_BaudRate));
-    TDOMElement(ParentNode).SetAttribute('flashbridge_comport', FlashBridge_COMPort);
     TDOMElement(ParentNode).SetAttribute('flashbridge_vio_mv', IntToStr(FlashBridge_VIO_mV));
 
     Node.Appendchild(parentNode);
@@ -3578,12 +3533,6 @@ begin
         OptVal := UTF16ToUTF8(Node.Attributes.GetNamedItem('arduino_baudrate').NodeValue);
 
         Arduino_BaudRate := StrToInt(OptVal);
-      end;
-
-      if  Node.Attributes.GetNamedItem('flashbridge_comport') <> nil then
-      begin
-        OptVal := UTF16ToUTF8(Node.Attributes.GetNamedItem('flashbridge_comport').NodeValue);
-        FlashBridge_COMPort := OptVal;
       end;
 
       if  Node.Attributes.GetNamedItem('flashbridge_vio_mv') <> nil then

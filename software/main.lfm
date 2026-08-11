@@ -679,98 +679,54 @@ object MainForm: TMainForm
     TabOrder = 4
     Visible = False
     Anchors = [akTop, akLeft, akRight]
-    object ComboFBPort: TComboBox
-      Left = 8
-      Top = 15
-      Width = 110
-      Height = 22
-      ItemHeight = 14
-      TabOrder = 0
-    end
     object BtnFBConnect: TButton
-      Left = 124
+      Left = 8
       Top = 15
       Width = 64
       Height = 22
-      Caption = '连接'
-      TabOrder = 1
+      Caption = '??'
+      TabOrder = 0
       OnClick = BtnFBConnectClick
     end
-    object EditFBTarget: TEdit
-      Left = 194
+    object ComboFBVolt: TComboBox
+      Left = 78
       Top = 15
-      Width = 56
+      Width = 90
       Height = 22
-      TabOrder = 2
+      ItemHeight = 14
+      Items.Strings = (
+        '1200'
+        '1800'
+        '2500'
+        '3300'
+      )
+      TabOrder = 1
       Text = '2500'
     end
-    object BtnFBSet: TButton
-      Left = 254
-      Top = 15
-      Width = 56
-      Height = 22
-      Caption = '设置'
-      TabOrder = 3
-      OnClick = BtnFBSetClick
-    end
-    object BtnFB12: TButton
-      Left = 314
-      Top = 15
-      Width = 42
-      Height = 22
-      Caption = '1.2V'
-      Tag = 1200
-      TabOrder = 4
-      OnClick = BtnFBPresetClick
-    end
-    object BtnFB18: TButton
-      Left = 360
-      Top = 15
-      Width = 42
-      Height = 22
-      Caption = '1.8V'
-      Tag = 1800
-      TabOrder = 5
-      OnClick = BtnFBPresetClick
-    end
-    object BtnFB25: TButton
-      Left = 406
-      Top = 15
-      Width = 42
-      Height = 22
-      Caption = '2.5V'
-      Tag = 2500
-      TabOrder = 6
-      OnClick = BtnFBPresetClick
-    end
-    object BtnFB33: TButton
-      Left = 452
-      Top = 15
-      Width = 42
-      Height = 22
-      Caption = '3.3V'
-      Tag = 3300
-      TabOrder = 7
-      OnClick = BtnFBPresetClick
-    end
-    object LblFBVIO: TLabel
-      Layout = tlCenter
-      Anchors = [akLeft]
-      Left = 500
-      Top = 28
-      Width = 185
+    object LblFBMV: TLabel
+      Left = 172
+      Top = 20
+      Width = 22
       Height = 17
-      Caption = '未连接'
+      Caption = 'mV'
     end
-    object BtnFBScan: TButton
-      Left = 690
+    object BtnFBSet: TButton
+      Left = 200
       Top = 15
       Width = 56
       Height = 22
       Caption = '??'
-      Anchors = [akTop, akRight]
-      TabOrder = 8
-      OnClick = BtnFBScanClick
+      TabOrder = 2
+      OnClick = BtnFBSetClick
+    end
+    object LblFBVIO: TLabel
+      Layout = tlCenter
+      Anchors = [akLeft, akRight]
+      Left = 270
+      Top = 28
+      Width = 400
+      Height = 17
+      Caption = '???'
     end
   end
   object TimerFBVIO: TTimer
