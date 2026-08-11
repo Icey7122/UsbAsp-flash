@@ -558,7 +558,6 @@ object MainForm: TMainForm
     Cursor = crIBeam
     Left = 160
     Height = 315
-    Anchors = [akTop, akLeft, akRight]
     Top = 34
     Width = 693
     CreateBackup = False
@@ -572,8 +571,7 @@ object MainForm: TMainForm
     PrintFont.Height = -15
     PrintFont.Name = 'Courier New'
     ZoomOnWheel = False
-    Align = alClient
-    Anchors = []
+    Anchors = [akTop, akLeft, akRight]
     BorderStyle = bsNone
     Font.CharSet = RUSSIAN_CHARSET
     Font.Color = clBlack
@@ -674,14 +672,14 @@ object MainForm: TMainForm
     Left = 160
     Top = 350
     Width = 693
-    Height = 50
+    Height = 60
     Caption = 'FlashBridge VIO'
     TabOrder = 4
     Visible = False
     Anchors = [akTop, akLeft, akRight]
     object ComboFBPort: TComboBox
       Left = 8
-      Top = 17
+      Top = 20
       Width = 110
       Height = 22
       ItemHeight = 14
@@ -689,7 +687,7 @@ object MainForm: TMainForm
     end
     object BtnFBConnect: TButton
       Left = 124
-      Top = 16
+      Top = 20
       Width = 64
       Height = 22
       Caption = '连接'
@@ -698,7 +696,7 @@ object MainForm: TMainForm
     end
     object EditFBTarget: TEdit
       Left = 194
-      Top = 17
+      Top = 20
       Width = 56
       Height = 22
       TabOrder = 2
@@ -706,7 +704,7 @@ object MainForm: TMainForm
     end
     object BtnFBSet: TButton
       Left = 254
-      Top = 16
+      Top = 20
       Width = 56
       Height = 22
       Caption = '设置'
@@ -715,7 +713,7 @@ object MainForm: TMainForm
     end
     object BtnFB12: TButton
       Left = 314
-      Top = 16
+      Top = 20
       Width = 42
       Height = 22
       Caption = '1.2V'
@@ -725,7 +723,7 @@ object MainForm: TMainForm
     end
     object BtnFB18: TButton
       Left = 360
-      Top = 16
+      Top = 20
       Width = 42
       Height = 22
       Caption = '1.8V'
@@ -735,7 +733,7 @@ object MainForm: TMainForm
     end
     object BtnFB25: TButton
       Left = 406
-      Top = 16
+      Top = 20
       Width = 42
       Height = 22
       Caption = '2.5V'
@@ -745,7 +743,7 @@ object MainForm: TMainForm
     end
     object BtnFB33: TButton
       Left = 452
-      Top = 16
+      Top = 20
       Width = 42
       Height = 22
       Caption = '3.3V'
@@ -756,7 +754,7 @@ object MainForm: TMainForm
     object LblFBVIO: TLabel
       Anchors = [akLeft, akRight]
       Left = 500
-      Top = 19
+      Top = 22
       Width = 185
       Height = 17
       Caption = '未连接'
