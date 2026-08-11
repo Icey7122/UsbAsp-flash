@@ -550,7 +550,7 @@ begin
     if MainForm.MenuFT232SPI6Mhz.Checked then Speed := MainForm.MenuFT232SPI6Mhz.Tag;
   end;
 
-  if (MainForm.RadioSPI.Checked) and (AsProgrammer.Current_HW = CHW_CH347) then
+  if (MainForm.RadioSPI.Checked) and ((AsProgrammer.Current_HW = CHW_CH347) or (AsProgrammer.Current_HW = CHW_FLASHBRIDGE)) then
   begin
     if MainForm.MenuCH347SPIClock60MHz.Checked then Speed := MainForm.MenuCH347SPIClock60MHz.Tag;
     if MainForm.MenuCH347SPIClock30MHz.Checked then Speed := MainForm.MenuCH347SPIClock30MHz.Tag;
