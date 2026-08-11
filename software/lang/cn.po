@@ -444,3 +444,266 @@ msgstr "脚本"
 #: tmainform.label_startaddress.caption
 msgid "Начальный адрес"
 msgstr "起始地址"
+#: msgstr.str_fb_rec_out
+msgid "Chip needs %dmV, out of VIO range (1200-3300)"
+msgstr "该芯片需要 %dmV，超出 VIO 范围(1200-3300)"
+
+#: msgstr.str_fb_rec_low
+msgid "Recommended %dmV (below 1.4V will use timed hold), click Set to apply"
+msgstr "推荐电压 %dmV（低于1.4V，应用后将限时保持），点设置应用"
+
+#: msgstr.str_fb_rec
+msgid "Recommended %dmV, click Set to apply"
+msgstr "推荐电压 %dmV，点设置应用"
+
+#: msgstr.str_fb_btn_connect
+msgid "Connect"
+msgstr "连接"
+
+#: msgstr.str_fb_btn_disconnect
+msgid "Disconnect"
+msgstr "断开"
+
+#: msgstr.str_fb_not_connected
+msgid "Not connected"
+msgstr "未连接"
+
+#: msgstr.str_fb_connecting
+msgid "Connecting %s ..."
+msgstr "连接 %s ..."
+
+#: msgstr.str_fb_detecting
+msgid "Detecting COM port..."
+msgstr "正在检测 COM 口..."
+
+#: msgstr.str_fb_not_found
+msgid "FlashBridge not found"
+msgstr "未找到 FlashBridge"
+
+#: msgstr.str_fb_connected
+msgid "Connected (%s)"
+msgstr "已连接 (%s)"
+
+#: msgstr.str_fb_holding
+msgid "Holding %dmV | %ds left"
+msgstr "保持中 %dmV | 剩余 %ds"
+
+#: msgstr.str_fb_blocked
+msgid "Voltage cannot be changed during hold"
+msgstr "保持期间不能设置电压"
+
+#: msgstr.str_fb_format_err
+msgid "Invalid voltage format"
+msgstr "电压格式错误"
+
+#: msgstr.str_fb_range
+msgid "Range 1200-3300mV"
+msgstr "范围 1200-3300mV"
+
+#: msgstr.str_fb_hold_sent
+msgid "Sent %dmV(%ds), communication may be interrupted"
+msgstr "已发送 %dmV(%ds)，通讯可能中断"
+
+#: msgstr.str_fb_set_ok
+msgid "Set to %dmV"
+msgstr "已设置 %dmV"
+
+#: msgstr.str_fb_restored
+msgid "Restored V %s"
+msgstr "已恢复 V %s"
+
+#: msgstr.str_fb_expired
+msgid "Expired, please reconnect to confirm"
+msgstr "已到期，请重新连接确认"
+
+#: msgstr.str_fb_expired_auto
+msgid "Expired, voltage should have auto-restored, reconnect to confirm"
+msgstr "已到期，电压应已自动恢复，请重新连接确认"
+
+#: msgstr.str_fb_disconnected
+msgid "Disconnected (no response)"
+msgstr "已断开（连续无响应）"
+
+#: msgstr.str_fb_no_resp
+msgid "No response: %s"
+msgstr "无响应: %s"
+
+#: msgstr.str_spi_freq_title
+msgid "SPI Clock Frequency"
+msgstr "SPI 频率"
+
+#: msgstr.str_spi_freq_prompt
+msgid "Enter SPI clock frequency in Hz (0 = use preset). Supported range 218.75KHz-60MHz:"
+msgstr "输入 SPI 时钟频率（Hz），0 表示使用预设档，支持范围 218.75KHz-60MHz："
+
+#: msgstr.str_spi_freq_preset
+msgid "SPI using preset frequency"
+msgstr "SPI 使用预设频率"
+
+#: msgstr.str_spi_freq_range
+msgid "SPI frequency out of range (218.75KHz-60MHz), not set"
+msgstr "SPI 频率超出支持范围 (218.75KHz-60MHz)，未设置"
+
+#: msgstr.str_spi_freq_set
+msgid "SPI custom frequency: %d Hz"
+msgstr "SPI 自定义频率: %d Hz"
+
+#: msgstr.str_usb_fs
+msgid "CH347 USB: Full Speed"
+msgstr "CH347 USB: 全速(FS)"
+
+#: msgstr.str_usb_hs
+msgid "CH347 USB: High Speed"
+msgstr "CH347 USB: 高速(HS)"
+
+#: msgstr.str_usb_ss
+msgid "CH347 USB: Super Speed"
+msgstr "CH347 USB: 超速(SS)"
+
+#: msgstr.str_usb_unk
+msgid "CH347 USB: speed=%d"
+msgstr "CH347 USB: 速率=%d"
+
+#: msgstr.str_spi_cfg
+msgid "SPI cfg: mode=%d clock=%d byteOrder=%d cs=%d"
+msgstr "SPI 配置: mode=%d clock=%d byteOrder=%d cs=%d"
+
+#: msgstr.str_spi_cfg_fail
+msgid "SPI GetCfg failed"
+msgstr "SPI 读取配置失败"
+
+#: msgstr.str_i2c_scan
+msgid "I2C bus scan ..."
+msgstr "I2C 总线扫描 ..."
+
+#: msgstr.str_i2c_scan_found
+msgid "Found %d device(s): %s"
+msgstr "发现 %d 个设备: %s"
+
+#: msgstr.str_i2c_scan_none
+msgid "No I2C device found"
+msgstr "未发现 I2C 设备"
+
+#: msgstr.str_i2c_scan_title
+msgid "I2C devices found:"
+msgstr "发现 I2C 设备:"
+
+#: msgstr.str_i2c_bm_read
+msgid "I2C Benchmark read %d bytes * %d cycles"
+msgstr "I2C 性能测试 读 %d 字节 × %d 次"
+
+#: msgstr.str_i2c_bm_write
+msgid "I2C Benchmark write %d bytes * %d cycles (data restored after)"
+msgstr "I2C 性能测试 写 %d 字节 × %d 次（测后恢复数据）"
+
+#: msgstr.str_i2c_bm_restored
+msgid "I2C Benchmark: original data restored and verified"
+msgstr "I2C 性能测试: 原始数据已恢复并校验"
+
+#: msgstr.str_i2c_bm_restore_fail
+msgid "I2C Benchmark: RESTORE FAILED - check chip"
+msgstr "I2C 性能测试: 数据恢复失败，请检查芯片"
+
+#: msgstr.str_btn_ok
+msgid "OK"
+msgstr "确定"
+
+#: msgstr.str_btn_cancel
+msgid "Cancel"
+msgstr "取消"
+
+#: tmainform.groupfbpanel.caption
+msgctxt "tmainform.groupfbpanel.caption"
+msgid "FlashBridge VIO"
+msgstr "FlashBridge VIO"
+
+#: tmainform.btnfbconnect.caption
+msgctxt "tmainform.btnfbconnect.caption"
+msgid "连接"
+msgstr "连接"
+
+#: tmainform.btnfbconnect.caption
+msgctxt "tmainform.btnfbconnect.caption"
+msgid "Connect"
+msgstr "连接"
+
+#: tmainform.btnfbset.caption
+msgctxt "tmainform.btnfbset.caption"
+msgid "设置"
+msgstr "设置"
+
+#: tmainform.btnfbset.caption
+msgctxt "tmainform.btnfbset.caption"
+msgid "Set"
+msgstr "设置"
+
+#: tmainform.menui2c.caption
+msgctxt "tmainform.menui2c.caption"
+msgid "I2C"
+msgstr "I2C"
+
+#: tmainform.menui2cspeed.caption
+msgctxt "tmainform.menui2cspeed.caption"
+msgid "Частота"
+msgstr "频率"
+
+#: tmainform.menui2cspeed.caption
+msgctxt "tmainform.menui2cspeed.caption"
+msgid "Frequency"
+msgstr "频率"
+
+#: tmainform.menui2cscan.caption
+msgctxt "tmainform.menui2cscan.caption"
+msgid "总线扫描"
+msgstr "总线扫描"
+
+#: tmainform.menui2cscan.caption
+msgctxt "tmainform.menui2cscan.caption"
+msgid "I2C Scan"
+msgstr "总线扫描"
+
+#: tmainform.menuitembenchmarki2c.caption
+msgctxt "tmainform.menuitembenchmarki2c.caption"
+msgid "Benchmark"
+msgstr "性能测试"
+
+#: tmainform.menuspimode.caption
+msgctxt "tmainform.menuspimode.caption"
+msgid "模式"
+msgstr "模式"
+
+#: tmainform.menuspimode.caption
+msgctxt "tmainform.menuspimode.caption"
+msgid "Mode"
+msgstr "模式"
+
+#: tmainform.menuspidatabits.caption
+msgctxt "tmainform.menuspidatabits.caption"
+msgid "数据位"
+msgstr "数据位"
+
+#: tmainform.menuspidatabits.caption
+msgctxt "tmainform.menuspidatabits.caption"
+msgid "Data Bits"
+msgstr "数据位"
+
+#: tmainform.menuspigetcfg.caption
+msgctxt "tmainform.menuspigetcfg.caption"
+msgid "读取SPI配置"
+msgstr "读取SPI配置"
+
+#: tmainform.menuspigetcfg.caption
+msgctxt "tmainform.menuspigetcfg.caption"
+msgid "Read SPI Config"
+msgstr "读取SPI配置"
+
+#: tmainform.menuch347spifreqcustom.caption
+msgctxt "tmainform.menuch347spifreqcustom.caption"
+msgid "自定义频率(Hz)..."
+msgstr "自定义频率(Hz)..."
+
+#: tmainform.menuch347spifreqcustom.caption
+msgctxt "tmainform.menuch347spifreqcustom.caption"
+msgid "Custom Frequency (Hz)..."
+msgstr "自定义频率(Hz)..."
+
