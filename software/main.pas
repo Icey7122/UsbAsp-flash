@@ -2083,8 +2083,8 @@ begin
     FBFailCount := 0;
     if T >= 0 then sT := FormatFloat('0.000', T)
     else sT := '?';
-    LblFBVIO.Caption := Format('V %s | T %s | %s%%',
-      [FormatFloat('0.000', V), sT, FormatFloat('0.0', D)]);
+    LblFBVIO.Caption := Format('V %s | T %s',
+      [FormatFloat('0.000', V), sT]);
   end
   else
   begin

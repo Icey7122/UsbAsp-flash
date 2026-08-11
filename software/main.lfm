@@ -681,7 +681,7 @@ object MainForm: TMainForm
     Anchors = [akTop, akLeft, akRight]
     object ComboFBPort: TComboBox
       Left = 8
-      Top = 20
+      Top = 15
       Width = 110
       Height = 22
       ItemHeight = 14
@@ -689,7 +689,7 @@ object MainForm: TMainForm
     end
     object BtnFBConnect: TButton
       Left = 124
-      Top = 20
+      Top = 15
       Width = 64
       Height = 22
       Caption = '连接'
@@ -698,7 +698,7 @@ object MainForm: TMainForm
     end
     object EditFBTarget: TEdit
       Left = 194
-      Top = 20
+      Top = 15
       Width = 56
       Height = 22
       TabOrder = 2
@@ -706,7 +706,7 @@ object MainForm: TMainForm
     end
     object BtnFBSet: TButton
       Left = 254
-      Top = 20
+      Top = 15
       Width = 56
       Height = 22
       Caption = '设置'
@@ -715,7 +715,7 @@ object MainForm: TMainForm
     end
     object BtnFB12: TButton
       Left = 314
-      Top = 20
+      Top = 15
       Width = 42
       Height = 22
       Caption = '1.2V'
@@ -725,7 +725,7 @@ object MainForm: TMainForm
     end
     object BtnFB18: TButton
       Left = 360
-      Top = 20
+      Top = 15
       Width = 42
       Height = 22
       Caption = '1.8V'
@@ -735,7 +735,7 @@ object MainForm: TMainForm
     end
     object BtnFB25: TButton
       Left = 406
-      Top = 20
+      Top = 15
       Width = 42
       Height = 22
       Caption = '2.5V'
@@ -745,7 +745,7 @@ object MainForm: TMainForm
     end
     object BtnFB33: TButton
       Left = 452
-      Top = 20
+      Top = 15
       Width = 42
       Height = 22
       Caption = '3.3V'
@@ -756,7 +756,7 @@ object MainForm: TMainForm
     object LblFBVIO: TLabel
       Anchors = [akLeft, akRight]
       Left = 500
-      Top = 22
+      Top = 18
       Width = 185
       Height = 17
       Caption = '未连接'
