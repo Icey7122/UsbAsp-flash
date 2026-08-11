@@ -1,4 +1,5 @@
 object MainForm: TMainForm
+  OnShow = FormShow
   OnResize = FormResize
   Left = 501
   Height = 541

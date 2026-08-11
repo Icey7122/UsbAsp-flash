@@ -194,6 +194,7 @@ type
     procedure BtnFBPresetClick(Sender: TObject);
     procedure TimerFBVIOTimer(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure AlignFBPanel;
     procedure MenuHWUSBASPClick(Sender: TObject);
     procedure MenuItemBenchmarkClick(Sender: TObject);
@@ -2101,6 +2102,11 @@ begin
 end;
 
 procedure TMainForm.FormResize(Sender: TObject);
+begin
+  AlignFBPanel;
+end;
+
+procedure TMainForm.FormShow(Sender: TObject);
 begin
   AlignFBPanel;
 end;
