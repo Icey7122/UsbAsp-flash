@@ -2089,8 +2089,9 @@ begin
   if (mv < 1800) and (holdSec > 0) then
   begin
     // 低于 1.8V 时 V002 可能失联，用固件限时保持保证自动恢复
+    TimerFBVIO.Enabled := false; // 通讯可能中断，暂停轮询
     if FB.VIOSetMillivoltsHold(mv, holdSec) then
-      LblFBVIO.Caption := Format('已设置 %dmV，保持 %ds，自动恢复', [mv, holdSec])
+      LblFBVIO.Caption := Format('已设置 %dmV，保持 %ds，期间通讯中断，到期自动恢复', [mv, holdSec])
     else
       LblFBVIO.Caption := Format('已发送 %dmV(%ds)，通讯可能中断', [mv, holdSec]);
   end
