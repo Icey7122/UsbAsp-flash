@@ -268,6 +268,7 @@ var
 
   Arduino_COMPort: string;
   Arduino_BaudRate: integer = 921600;
+  FlashBridge_COMPort: string;
   FlashBridge_VIO_mV: integer = 2500;
 
 procedure CheckChipVIOVoltage(const ChipName: string);
@@ -2031,23 +2032,31 @@ begin
   end
   else
   begin
-    LblFBVIO.Caption := '正在检测 COM 口...';
-    Application.ProcessMessages;
-    Port := FB.FindV002Port;
+    Port := '';
+    if FlashBridge_COMPort <> '' then
+    begin
+      LblFBVIO.Caption := '连接 ' + FlashBridge_COMPort + ' ...';
+      Application.ProcessMessages;
+      if FB.VIOConnect(FlashBridge_COMPort) then
+        Port := FlashBridge_COMPort;
+    end;
+    if Port = '' then
+    begin
+      LblFBVIO.Caption := '正在检测 COM 口...';
+      Application.ProcessMessages;
+      Port := FB.FindV002Port;
+      if (Port <> '') and (not FB.VIOConnect(Port)) then Port := '';
+    end;
     if Port = '' then
     begin
       LblFBVIO.Caption := '未找到 FlashBridge';
       Exit;
     end;
-    if FB.VIOConnect(Port) then
-    begin
-      FBFailCount := 0;
-      BtnFBConnect.Caption := '断开';
-      LblFBVIO.Caption := '已连接';
-      TimerFBVIO.Enabled := true;
-    end
-    else
-      LblFBVIO.Caption := FB.VIOError;
+    FlashBridge_COMPort := Port;
+    FBFailCount := 0;
+    BtnFBConnect.Caption := '断开';
+    LblFBVIO.Caption := '已连接 (' + Port + ')';
+    TimerFBVIO.Enabled := true;
   end;
 end;
 
@@ -3480,6 +3489,7 @@ begin
 
     TDOMElement(ParentNode).SetAttribute('arduino_comport', Arduino_COMPort);
     TDOMElement(ParentNode).SetAttribute('arduino_baudrate', IntToStr(Arduino_BaudRate));
+    TDOMElement(ParentNode).SetAttribute('flashbridge_comport', FlashBridge_COMPort);
     TDOMElement(ParentNode).SetAttribute('flashbridge_vio_mv', IntToStr(FlashBridge_VIO_mV));
 
     Node.Appendchild(parentNode);
@@ -3619,6 +3629,12 @@ begin
         OptVal := UTF16ToUTF8(Node.Attributes.GetNamedItem('arduino_baudrate').NodeValue);
 
         Arduino_BaudRate := StrToInt(OptVal);
+      end;
+
+      if  Node.Attributes.GetNamedItem('flashbridge_comport') <> nil then
+      begin
+        OptVal := UTF16ToUTF8(Node.Attributes.GetNamedItem('flashbridge_comport').NodeValue);
+        FlashBridge_COMPort := OptVal;
       end;
 
       if  Node.Attributes.GetNamedItem('flashbridge_vio_mv') <> nil then
