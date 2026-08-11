@@ -9,3 +9,6 @@ software/*.ppu
 
 # Temporary diagnostic tools
 tools/
+
+# Release packaging workspace
+package/
