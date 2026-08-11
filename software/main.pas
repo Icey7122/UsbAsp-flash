@@ -2165,7 +2165,7 @@ begin
       Restored := false;
       for i := 1 to 3 do
       begin
-        if FB.VIOGetStatusEx(V, T, D, 200) then
+        if FB.VIOGetStatusEx(V, T, D, FB_READ_TIMEOUT) then
         begin
           Restored := true;
           LblFBVIO.Caption := Format('已恢复 V %s', [FormatFloat('0.000', V)]);

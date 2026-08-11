@@ -235,7 +235,7 @@ begin
     Sleep(150);
     Probe.Purge;
     Probe.SendString(FB_WAKE_SEQUENCE);
-    S := ReadPromptFrom(Probe, 800);
+    S := ReadPromptFrom(Probe, FB_READ_TIMEOUT);
     Result := Pos(FB_PROMPT, S) > 0;
   finally
     Probe.CloseSocket;

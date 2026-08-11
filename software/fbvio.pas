@@ -9,6 +9,7 @@ uses
 
 const
   FB_BAUD = 115200;
+  FB_READ_TIMEOUT = 200;
   FB_VIO_MIN_MV = 1200;
   FB_VIO_MAX_MV = 3300;
   FB_WAKE_SEQUENCE = '+++flashbridge' + #13;
