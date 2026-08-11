@@ -757,7 +757,7 @@ object MainForm: TMainForm
       Layout = tlCenter
       Anchors = [akLeft, akRight]
       Left = 500
-      Top = 26
+      Top = 28
       Width = 185
       Height = 17
       Caption = '未连接'
