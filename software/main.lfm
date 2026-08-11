@@ -559,7 +559,7 @@ object MainForm: TMainForm
   object MPHexEditorEx: TMPHexEditorEx
     Cursor = crIBeam
     Left = 160
-    Height = 298
+    Height = 285
     Top = 34
     Width = 693
     CreateBackup = False
@@ -674,7 +674,7 @@ object MainForm: TMainForm
     Left = 160
     Top = 336
     Width = 693
-    Height = 72
+    Height = 84
     Caption = 'FlashBridge VIO'
     TabOrder = 4
     Visible = False
@@ -742,6 +742,15 @@ object MainForm: TMainForm
       Width = 350
       Height = 17
       Caption = '未连接'
+    end
+    object LblFBInfo: TLabel
+      Left = 8
+      Top = 42
+      Width = 670
+      Height = 15
+      Font.Height = -11
+      Anchors = [akTop, akLeft, akRight]
+      Caption = ''
     end
   end
   object TimerFBVIO: TTimer
