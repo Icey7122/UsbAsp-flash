@@ -27,6 +27,7 @@ type
     // SPI
     function SPIInit(speed: integer): boolean; override;
     procedure SPIDeinit; override;
+  procedure SPIGetCfg; override;
     function SPIRead(CS: byte; BufferLen: integer; var buffer: array of byte): integer; override;
     function SPIWrite(CS: byte; BufferLen: integer; buffer: array of byte): integer; override;
 
@@ -106,6 +107,8 @@ procedure TFlashBridgeHardware.SPIDeinit;
 begin
   FCH347.SPIDeinit;
 end;
+
+procedure TFlashBridgeHardware.SPIGetCfg; begin   FCH347.SPIGetCfg; end;
 
 function TFlashBridgeHardware.SPIRead(CS: byte; BufferLen: integer;
   var buffer: array of byte): integer;

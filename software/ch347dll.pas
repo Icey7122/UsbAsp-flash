@@ -21,6 +21,28 @@ type _SPI_CONFIG = packed record
 end;
 
   mpSpiCfgS = ^_SPI_CONFIG;
+//Device information (packed, see CH347DLL.H mDeviceInforS)
+  mDeviceInforS = packed record
+    iIndex: byte;
+    DevicePath: array[0..259] of byte;
+    UsbClass: byte;
+    FuncType: byte;
+    DeviceID: array[0..63] of AnsiChar;
+    ChipMode: byte;
+    DevHandle: cardinal;
+    BulkOutEndpMaxSize: word;
+    BulkInEndpMaxSize: word;
+    UsbSpeedType: byte;          // 0=FS, 1=HS, 2=SS
+    CH347IfNum: byte;
+    DataUpEndp: byte;
+    DataDnEndp: byte;
+    ProductString: array[0..63] of AnsiChar;
+    ManufacturerString: array[0..63] of AnsiChar;
+    WriteTimeout: cardinal;
+    ReadTimeout: cardinal;
+    FuncDescStr: array[0..63] of AnsiChar;
+    FirewareVer: byte;
+  end;
 
 const
   mCH347_PACKET_LENGTH = 512;		// Length of packets supported by ch347
@@ -60,6 +82,22 @@ function CH347WriteData(iIndex: cardinal;      // Specifies the device number
 //***************SPI********************
 // SPI Controller Initialization
 function CH347SPI_Init(iIndex: cardinal; SpiCfg: mpSpiCfgS): boolean; stdcall; external 'CH347DLL.DLL';
+
+//Set SPI clock frequency in Hz; call CH347SPI_Init again after this
+function CH347SPI_SetFrequency(iIndex: cardinal;
+                               iSpiSpeedHz: cardinal): boolean; stdcall; external 'CH347DLL.DLL';
+
+//Set SPI data bits: 0=8bit, 1=16bit (call before CH347SPI_Init)
+function CH347SPI_SetDataBits(iIndex: cardinal;
+                                 iDataBits: byte): boolean; stdcall; external 'CH347DLL.DLL';
+
+//Get current SPI controller config
+function CH347SPI_GetCfg(iIndex: cardinal;
+                            SpiCfg: mpSpiCfgS): boolean; stdcall; external 'CH347DLL.DLL';
+
+//Get device info (USB speed type etc.)
+function CH347GetDeviceInfor(iIndex: cardinal;
+                              DevInformation: pointer): boolean; stdcall; external 'CH347DLL.DLL';
 
 // Get SPI controller configuration information
 //BOOL    WINAPI  CH347SPI_GetCfg(ULONG iIndex,mSpiCfgS *SpiCfg);
@@ -109,7 +147,6 @@ function CH347I2C_Set(iIndex: cardinal;   // Specify the device number
 		      iMode: cardinal): boolean; stdcall; external 'CH347DLL.DLL'; // See downlink for the specified mode
 //bit 1-bit 0: I2C interface speed /SCL frequency, 00= low speed /20KHz,01= standard /100KHz(default),10= fast /400KHz,11= high speed /750KHz
 //Other reservations, must be 0
-
 //Set the hardware asynchronous delay to a specified number of milliseconds before the next stream operation
 function CH347I2C_SetDelaymS(iIndex: cardinal;        // Specify the device number
                              iDelay: cardinal): boolean; stdcall; external 'CH347DLL.DLL';    // Specifies the delay duration (mS)

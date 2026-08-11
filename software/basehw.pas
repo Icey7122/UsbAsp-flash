@@ -27,6 +27,7 @@ public
   //SPI
   function SPIInit(speed: integer): boolean; virtual; abstract;
   procedure SPIDeinit; virtual; abstract;
+  procedure SPIGetCfg; virtual;
   function SPIRead(CS: byte; BufferLen: integer; var buffer: array of byte): integer; virtual; abstract;
   function SPIWrite(CS: byte; BufferLen: integer; buffer: array of byte): integer; virtual; abstract;
 
@@ -105,6 +106,10 @@ begin
         FCurrent_HW := HW;
       end;
   end;
+end;
+
+procedure TBaseHardware.SPIGetCfg;
+begin
 end;
 
 end.

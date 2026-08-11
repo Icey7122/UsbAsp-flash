@@ -30,6 +30,7 @@ public
   function SPIWrite(CS: byte; BufferLen: integer; buffer: array of byte): integer; override;
   function SPIInit(speed: integer): boolean; override;
   procedure SPIDeinit; override;
+  procedure SPIGetCfg; override;
 
   //I2C
   procedure I2CInit; override;
@@ -56,6 +57,9 @@ end;
 implementation
 uses main;
 
+var
+  CH347_SpeedLogged: boolean = false;
+
 constructor TCH347Hardware.Create;
 begin
   FDevHandle := -1;
@@ -76,6 +80,7 @@ end;
 function TCH347Hardware.DevOpen: boolean;
 var
   i, err: integer;
+  DevInfo: mDeviceInforS;
 begin
   if FDevOpened then DevClose;
 
@@ -98,6 +103,20 @@ begin
     end;
 
   FDevOpened := true;
+
+  if not CH347_SpeedLogged then
+  begin
+    CH347_SpeedLogged := true;
+    if CH347GetDeviceInfor(FDevHandle, @DevInfo) then
+      case DevInfo.UsbSpeedType of
+        0: main.LogPrint(STR_USB_FS);
+        1: main.LogPrint(STR_USB_HS);
+        2: main.LogPrint(STR_USB_SS);
+      else
+        main.LogPrint(Format(STR_USB_UNK, [DevInfo.UsbSpeedType]));
+      end;
+  end;
+
   Result := true;
 end;
 
@@ -119,7 +138,7 @@ begin
   if not FDevOpened then Exit(false);
   with FDevSPIConfig do
   begin
-    iMode:= 0;
+    iMode:= main.GetSPIMode;
     iClock:= speed;
     iByteOrder:= 1;
     iSpiWriteReadInterval:= 0;
@@ -132,6 +151,10 @@ begin
     iDelayDeactive:= 0;
   end;
 
+  CH347SPI_SetDataBits(FDevHandle, main.GetSPIDataBits);
+  if main.CH347_SPI_FreqHz > 0 then
+    CH347SPI_SetFrequency(FDevHandle, main.CH347_SPI_FreqHz);
+
   Result := CH347SPI_Init(FDevHandle, @FDevSPIConfig);
 end;
 
@@ -139,6 +162,8 @@ procedure TCH347Hardware.SPIDeinit;
 begin
   if not FDevOpened then Exit;
 end;
+
+procedure TCH347Hardware.SPIGetCfg; begin   if not FDevOpened then Exit;   if CH347SPI_GetCfg(FDevHandle, @FDevSPIConfig) then   begin     main.LogPrint(Format(STR_SPI_CFG, [FDevSPIConfig.iMode,       FDevSPIConfig.iClock,       FDevSPIConfig.iByteOrder,       FDevSPIConfig.iChipSelect]));   end   else     main.LogPrint(STR_SPI_CFG_FAIL); end;
 
 function TCH347Hardware.SPIRead(CS: byte; BufferLen: integer; var buffer: array of byte): integer;
 begin
@@ -171,7 +196,7 @@ end;
 procedure TCH347Hardware.I2CInit;
 begin
   if not FDevOpened then Exit;
-  CH347I2C_Set(FDevHandle, 1);
+  CH347I2C_Set(FDevHandle, main.GetI2CSpeedMode);
 end;
 
 procedure TCH347Hardware.I2CDeinit;

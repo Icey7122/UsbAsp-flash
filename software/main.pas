@@ -62,6 +62,26 @@ type
     MenuCH347SPIClock3_75MHz: TMenuItem;
     MenuCH347SPIClock1_875MHz: TMenuItem;
     MenuCH347SPIClock937_5KHz: TMenuItem;
+    MenuI2C: TMenuItem;
+    MenuI2CSpeed: TMenuItem;
+    MenuI2CSpeed20KHz: TMenuItem;
+    MenuI2CSpeed50KHz: TMenuItem;
+    MenuI2CSpeed100KHz: TMenuItem;
+    MenuI2CSpeed200KHz: TMenuItem;
+    MenuI2CSpeed400KHz: TMenuItem;
+    MenuI2CSpeed750KHz: TMenuItem;
+    MenuI2CSpeed1MHz: TMenuItem;
+    MenuI2CScan: TMenuItem;
+    MenuSPIMode: TMenuItem;
+    MenuSPIMode0: TMenuItem;
+    MenuSPIMode1: TMenuItem;
+    MenuSPIMode2: TMenuItem;
+    MenuSPIMode3: TMenuItem;
+    MenuCH347SPIFreqCustom: TMenuItem;
+    MenuSPIDataBits: TMenuItem;
+    MenuSPIDataBits8: TMenuItem;
+    MenuSPIDataBits16: TMenuItem;
+    MenuSPIGetCfg: TMenuItem;
     MenuSendAB: TMenuItem;
     StartAddressEdit: TEdit;
     GroupChipSettings: TGroupBox;
@@ -194,8 +214,14 @@ type
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure AlignFBPanel;
+    procedure Splitter1Moved(Sender: TObject);
     procedure MenuHWUSBASPClick(Sender: TObject);
     procedure MenuItemBenchmarkClick(Sender: TObject);
+    procedure MenuItemBenchmarkI2CClick(Sender: TObject);
+    procedure MenuI2CScanClick(Sender: TObject);
+    procedure MenuCH347SPIClockPresetClick(Sender: TObject);
+    procedure MenuCH347SPIFreqCustomClick(Sender: TObject);
+    procedure MenuSPIGetCfgClick(Sender: TObject);
     procedure MenuItemEditSregClick(Sender: TObject);
     procedure MenuItemLockFlashClick(Sender: TObject);
     procedure MenuItemReadSregClick(Sender: TObject);
@@ -271,12 +297,16 @@ var
   Arduino_COMPort: string;
   Arduino_BaudRate: integer = 921600;
   FlashBridge_COMPort: string;
+  CH347_SPI_FreqHz: cardinal = 0;
   FlashBridge_VIO_mV: integer = 2500;
   FBHoldSeconds: integer = 30;
   FBHoldUntil: TDateTime = 0;
   FBHoldMV: integer = 0;
 
 procedure CheckChipVIOVoltage(const ChipName: string; VCCMV: integer);
+function GetI2CSpeedMode: integer;
+function GetSPIMode: integer;
+function GetSPIDataBits: byte;
 
 implementation
 
@@ -1863,6 +1893,10 @@ begin
   end
   else
     MainForm.GroupFBPanel.Visible := false;
+  MainForm.MenuI2C.Visible := (programmer = CHW_CH347) or (programmer = CHW_FLASHBRIDGE);
+  MainForm.MenuSPIMode.Visible := (programmer = CHW_CH347) or (programmer = CHW_FLASHBRIDGE);
+  MainForm.MenuSPIDataBits.Visible := (programmer = CHW_CH347) or (programmer = CHW_FLASHBRIDGE);
+  MainForm.MenuSPIGetCfg.Visible := (programmer = CHW_CH347) or (programmer = CHW_FLASHBRIDGE);
 
 end;
 
@@ -2022,18 +2056,167 @@ begin
 
   if (RecMV < FB_VIO_MIN_MV) or (RecMV > FB_VIO_MAX_MV) then
   begin
-    MainForm.LblFBInfo.Caption := Format('该芯片需要 %dmV，超出 VIO 范围(1200-3300)', [RecMV]);
+    MainForm.LblFBInfo.Caption := Format(STR_FB_REC_OUT, [RecMV]);
     Exit;
   end;
 
   // 只推荐，不自动应用：由用户决定是否点"设置"
   MainForm.ComboFBVolt.Text := IntToStr(RecMV);
   if RecMV < 1400 then
-    MainForm.LblFBInfo.Caption := Format('推荐电压 %dmV（低于1.4V，应用后将限时保持），点设置应用', [RecMV])
+    MainForm.LblFBInfo.Caption := Format(STR_FB_REC_LOW, [RecMV])
   else
-    MainForm.LblFBInfo.Caption := Format('推荐电压 %dmV，点设置应用', [RecMV]);
+    MainForm.LblFBInfo.Caption := Format(STR_FB_REC, [RecMV]);
 end;
 
+function GetI2CSpeedMode: integer;
+begin
+  Result := 1; // default 100KHz
+  if MainForm.MenuI2CSpeed20KHz.Checked then Result := 0;
+  if MainForm.MenuI2CSpeed50KHz.Checked then Result := 4;
+  if MainForm.MenuI2CSpeed100KHz.Checked then Result := 1;
+  if MainForm.MenuI2CSpeed200KHz.Checked then Result := 5;
+  if MainForm.MenuI2CSpeed400KHz.Checked then Result := 2;
+  if MainForm.MenuI2CSpeed750KHz.Checked then Result := 3;
+  if MainForm.MenuI2CSpeed1MHz.Checked then Result := 6;
+end;
+function GetSPIMode: integer;
+begin
+  Result := 0;
+  if MainForm.MenuSPIMode1.Checked then Result := 1;
+  if MainForm.MenuSPIMode2.Checked then Result := 2;
+  if MainForm.MenuSPIMode3.Checked then Result := 3;
+end;
+
+procedure TMainForm.MenuCH347SPIClockPresetClick(Sender: TObject);
+begin
+  CH347_SPI_FreqHz := 0;
+end;
+
+function InputBoxNarrow(const ACaption, APrompt, ADefault: string): string;
+var
+  F: TForm;
+  L: TLabel;
+  E: TEdit;
+  B1, B2: TButton;
+begin
+  Result := ADefault;
+  F := TForm.CreateNew(nil);
+  try
+    F.Caption := ACaption;
+    F.Width := 340;
+    F.Position := poScreenCenter;
+    F.BorderStyle := bsDialog;
+    L := TLabel.Create(F);
+    L.Parent := F;
+    L.WordWrap := true;
+    L.AutoSize := false;
+    L.Left := 12;
+    L.Top := 12;
+    L.Width := 300;
+    L.Caption := APrompt;
+    L.Height := L.Canvas.TextHeight(L.Caption) * ((L.Canvas.TextWidth(L.Caption) div (L.Width - 4)) + 2);
+    E := TEdit.Create(F);
+    E.Parent := F;
+    E.Left := 12;
+    E.Top := L.Top + L.Height + 10;
+    E.Width := 300;
+    E.Text := ADefault;
+    B1 := TButton.Create(F);
+    B1.Parent := F;
+    B1.Caption := STR_BTN_OK;
+    B1.ModalResult := mrOk;
+    B1.Left := 12;
+    B1.Top := E.Top + E.Height + 12;
+    B1.Width := 100;
+    B2 := TButton.Create(F);
+    B2.Parent := F;
+    B2.Caption := STR_BTN_CANCEL;
+    B2.ModalResult := mrCancel;
+    B2.Left := 120;
+    B2.Top := E.Top + E.Height + 12;
+    B2.Width := 100;
+    F.Height := B1.Top + B1.Height + 40;
+    if F.ShowModal = mrOk then Result := E.Text;
+  finally
+    F.Free;
+  end;
+end;
+procedure TMainForm.MenuCH347SPIFreqCustomClick(Sender: TObject);
+var
+  s: string;
+  n: longint;
+begin
+  s := InputBoxNarrow(STR_SPI_FREQ_TITLE, STR_SPI_FREQ_PROMPT, IntToStr(CH347_SPI_FreqHz));
+  if not TryStrToInt(s, n) then Exit;
+  if n = 0 then
+  begin
+    CH347_SPI_FreqHz := 0;
+    LogPrint(STR_SPI_FREQ_PRESET);
+    Exit;
+  end;
+  if (n < 218750) or (n > 60000000) then
+  begin
+    LogPrint(STR_SPI_FREQ_RANGE);
+    Exit;
+  end;
+  CH347_SPI_FreqHz := cardinal(n);
+  MainForm.MenuCH347SPIClock60MHz.Checked := false;
+  MainForm.MenuCH347SPIClock30MHz.Checked := false;
+  MainForm.MenuCH347SPIClock15MHz.Checked := false;
+  MainForm.MenuCH347SPIClock7_5MHz.Checked := false;
+  MainForm.MenuCH347SPIClock3_75MHz.Checked := false;
+  MainForm.MenuCH347SPIClock1_875MHz.Checked := false;
+  MainForm.MenuCH347SPIClock937_5KHz.Checked := false;
+  MainForm.MenuCH347SPIClock468_75KHz.Checked := false;
+  LogPrint(Format(STR_SPI_FREQ_SET, [CH347_SPI_FreqHz]));
+end;
+
+procedure TMainForm.MenuI2CScanClick(Sender: TObject);
+var
+  i, found: integer;
+  s: string;
+begin
+  if not OpenDevice() then exit;
+  EnterProgModeI2C();
+  LockControl();
+  LogPrint(STR_I2C_SCAN);
+  found := 0;
+  s := '';
+  for i := 0 to 127 do
+  begin
+    if not UsbAspI2C_BUSY(i shl 1) then
+    begin
+      Inc(found);
+      if s <> '' then s := s + ', ';
+      s := s + Format('0x%X', [i shl 1]);
+    end;
+    Application.ProcessMessages;
+  end;
+  if found > 0 then
+  begin
+    LogPrint(Format(STR_I2C_SCAN_FOUND, [found, s]));
+    ShowMessage(STR_I2C_SCAN_TITLE + #13 + s);
+  end
+  else
+    LogPrint(STR_I2C_SCAN_NONE);
+  AsProgrammer.Programmer.I2CDeinit;
+  AsProgrammer.Programmer.DevClose;
+  UnlockControl();
+end;
+function GetSPIDataBits: byte;
+begin
+  Result := 0;
+  if MainForm.MenuSPIDataBits16.Checked then Result := 1;
+end;
+
+procedure TMainForm.MenuSPIGetCfgClick(Sender: TObject);
+begin
+  if not OpenDevice() then exit;
+  EnterProgMode25(SetSPISpeed(0), MainForm.MenuSendAB.Checked);
+  AsProgrammer.Programmer.SPIGetCfg;
+  ExitProgMode25;
+  AsProgrammer.Programmer.DevClose;
+end;
 procedure TMainForm.BtnFBConnectClick(Sender: TObject);
 var
   FB: TFlashBridgeHardware;
@@ -2047,39 +2230,38 @@ begin
     TimerFBVIO.Enabled := false;
     FBHoldUntil := 0;
     BtnFBSet.Enabled := true;
-    BtnFBConnect.Caption := '连接';
-    LblFBVIO.Caption := '未连接';
+    BtnFBConnect.Caption := STR_FB_BTN_CONNECT;
+    LblFBVIO.Caption := STR_FB_NOT_CONNECTED;
   end
   else
   begin
     Port := '';
     if FlashBridge_COMPort <> '' then
     begin
-      LblFBVIO.Caption := '连接 ' + FlashBridge_COMPort + ' ...';
+      LblFBVIO.Caption := Format(STR_FB_CONNECTING, [FlashBridge_COMPort]);
       Application.ProcessMessages;
       if FB.VIOConnect(FlashBridge_COMPort) then
         Port := FlashBridge_COMPort;
     end;
     if Port = '' then
     begin
-      LblFBVIO.Caption := '正在检测 COM 口...';
+      LblFBVIO.Caption := STR_FB_DETECTING;
       Application.ProcessMessages;
       Port := FB.FindV002Port;
       if (Port <> '') and (not FB.VIOConnect(Port)) then Port := '';
     end;
     if Port = '' then
     begin
-      LblFBVIO.Caption := '未找到 FlashBridge';
+      LblFBVIO.Caption := STR_FB_NOT_FOUND;
       Exit;
     end;
     FlashBridge_COMPort := Port;
     FBFailCount := 0;
-    BtnFBConnect.Caption := '断开';
-    LblFBVIO.Caption := '已连接 (' + Port + ')';
+    BtnFBConnect.Caption := STR_FB_BTN_DISCONNECT;
+    LblFBVIO.Caption := Format(STR_FB_CONNECTED, [Port]);
     TimerFBVIO.Enabled := true;
   end;
 end;
-
 procedure TMainForm.BtnFBSetClick(Sender: TObject);
 var
   FB: TFlashBridgeHardware;
@@ -2089,17 +2271,17 @@ begin
   if (FB = nil) or (not FB.VIOConnected) then Exit;
   if (FBHoldUntil <> 0) and (FBHoldUntil > Now) then
   begin
-    LblFBInfo.Caption := '保持期间不能设置电压';
+    LblFBInfo.Caption := STR_FB_BLOCKED;
     Exit;
   end;
   if not TryStrToInt(Trim(ComboFBVolt.Text), mv) then
   begin
-    LblFBInfo.Caption := '电压格式错误';
+    LblFBInfo.Caption := STR_FB_FORMAT_ERR;
     Exit;
   end;
   if (mv < FB_VIO_MIN_MV) or (mv > FB_VIO_MAX_MV) then
   begin
-    LblFBInfo.Caption := '范围 1200-3300mV';
+    LblFBInfo.Caption := STR_FB_RANGE;
     Exit;
   end;
   if not TryStrToInt(Trim(EditFBHold.Text), holdSec) then holdSec := 0;
@@ -2114,9 +2296,9 @@ begin
     FBHoldMV := mv;
     BtnFBSet.Enabled := false;
     if FB.VIOSetMillivoltsHold(mv, holdSec) then
-      LblFBVIO.Caption := Format('保持中 %dmV | 剩余 %ds', [mv, holdSec])
+      LblFBVIO.Caption := Format(STR_FB_HOLDING, [mv, holdSec])
     else
-      LblFBInfo.Caption := Format('已发送 %dmV(%ds)，通讯可能中断', [mv, holdSec]);
+      LblFBInfo.Caption := Format(STR_FB_HOLD_SENT, [mv, holdSec]);
     TimerFBVIO.Enabled := true; // 倒计时
   end
   else
@@ -2125,7 +2307,7 @@ begin
     BtnFBSet.Enabled := true;
     if FB.VIOSetMillivolts(mv) then
     begin
-      LblFBInfo.Caption := '已设置 ' + IntToStr(mv) + 'mV';
+      LblFBInfo.Caption := Format(STR_FB_SET_OK, [mv]);
       TimerFBVIOTimer(Sender);
     end
     else
@@ -2149,12 +2331,12 @@ begin
     begin
       Remaining := Round((FBHoldUntil - Now) * SecsPerDay);
       if Remaining > 0 then
-        LblFBVIO.Caption := Format('保持中 %dmV | 剩余 %ds', [FBHoldMV, Remaining])
+        LblFBVIO.Caption := Format(STR_FB_HOLDING, [FBHoldMV, Remaining])
       else
       begin
         FBHoldUntil := 0;
         BtnFBSet.Enabled := true;
-        LblFBInfo.Caption := '已到期，请重新连接确认';
+        LblFBInfo.Caption := STR_FB_EXPIRED;
       end;
       Exit;
     end;
@@ -2168,7 +2350,7 @@ begin
     if Remaining > 0 then
     begin
       // 倒计时期间不做任何串口通讯，避免超时阻塞界面
-      LblFBVIO.Caption := Format('保持中 %dmV | 剩余 %ds', [FBHoldMV, Remaining]);
+      LblFBVIO.Caption := Format(STR_FB_HOLDING, [FBHoldMV, Remaining]);
     end
     else
     begin
@@ -2180,14 +2362,14 @@ begin
         if FB.VIOGetStatusEx(V, T, D, FB_READ_TIMEOUT) then
         begin
           Restored := true;
-          LblFBInfo.Caption := Format('已恢复 V %s', [FormatFloat('0.000', V)]);
+          LblFBInfo.Caption := Format(STR_FB_RESTORED, [FormatFloat('0.000', V)]);
           Break;
         end;
         if i < 3 then Sleep(100);
       end;
       if not Restored then
       begin
-        LblFBInfo.Caption := '已到期，电压应已自动恢复，请重新连接确认';
+        LblFBInfo.Caption := STR_FB_EXPIRED_AUTO;
         TimerFBVIO.Enabled := false;
       end;
     end;
@@ -2209,11 +2391,11 @@ begin
     begin
       FB.VIODisconnect;
       TimerFBVIO.Enabled := false;
-      BtnFBConnect.Caption := '连接';
-      LblFBVIO.Caption := '已断开（连续无响应）';
+      BtnFBConnect.Caption := STR_FB_BTN_CONNECT;
+      LblFBVIO.Caption := STR_FB_DISCONNECTED;
     end
     else
-      LblFBVIO.Caption := '无响应: ' + FB.VIOError;
+      LblFBVIO.Caption := Format(STR_FB_NO_RESP, [FB.VIOError]);
   end;
 end;
 
@@ -2228,8 +2410,17 @@ begin
 end;
 
 procedure TMainForm.AlignFBPanel;
+var
+  ContentBottom: integer;
 begin
-  GroupFBPanel.Top := GroupChipSettings.Top + GroupChipSettings.Height - GroupFBPanel.Height;
+  ContentBottom := GroupChipSettings.Top + GroupChipSettings.Height;
+  MPHexEditorEx.Height := ContentBottom - GroupFBPanel.Height - MPHexEditorEx.Top;
+  GroupFBPanel.Top := ContentBottom - GroupFBPanel.Height;
+end;
+
+procedure TMainForm.Splitter1Moved(Sender: TObject);
+begin
+  AlignFBPanel;
 end;
 
 procedure TMainForm.MenuHWUSBASPClick(Sender: TObject);
@@ -2313,6 +2504,92 @@ begin
   UnlockControl();
 end;
 
+procedure TMainForm.MenuItemBenchmarkI2CClick(Sender: TObject);
+var
+  DevAddr: byte;
+  PageSize, chunkSize: integer;
+  chunk, backup, wbuf: array[0..255] of byte;
+  i, cycles: integer;
+  t: TDateTime;
+  timeval: integer;
+  ms, sec, d: word;
+  RestoreOK: boolean;
+begin
+  ButtonCancel.Tag := 0;
+  if not OpenDevice() then exit;
+  EnterProgModeI2C();
+  LockControl();
+
+  DevAddr := SetI2CDevAddr();
+  PageSize := StrToIntDef(MainForm.ComboPageSize.Text, 32);
+  if PageSize < 1 then PageSize := 1;
+  if PageSize > 256 then PageSize := 256;
+  chunkSize := PageSize;
+  cycles := 128;
+
+  // read benchmark
+  LogPrint(Format(STR_I2C_BM_READ, [chunkSize, cycles]));
+  Application.ProcessMessages();
+  TimeCounter := Time();
+
+  for i:=1 to cycles do
+  begin
+    UsbAspI2C_Read(DevAddr, MainForm.ComboAddrType.ItemIndex, 0, chunk, chunkSize);
+    Application.ProcessMessages;
+    if UserCancel then Break;
+  end;
+
+  t := Time() - TimeCounter;
+  DecodeDateTime(t, d, d, d, d, d, sec, ms);
+  timeval := (sec * 1000) + ms;
+  if timeval = 0 then timeval := 1;
+  LogPrint(STR_TIME + TimeToStr(t)+' '+
+    IntToStr( Trunc(((cycles*chunkSize) / timeval) * 1000)) +' bytes/s');
+
+  // write benchmark: backup -> write -> restore
+  FillByte(backup, chunkSize, 0);
+  UsbAspI2C_Read(DevAddr, MainForm.ComboAddrType.ItemIndex, 0, backup, chunkSize);
+  while UsbAspI2C_BUSY(DevAddr) do Application.ProcessMessages;
+  for i := 0 to chunkSize-1 do wbuf[i] := Byte(i);
+
+  LogPrint(Format(STR_I2C_BM_WRITE, [chunkSize, cycles]));
+  Application.ProcessMessages();
+  TimeCounter := Time();
+
+  for i:=1 to cycles do
+  begin
+    UsbAspI2C_Write(DevAddr, MainForm.ComboAddrType.ItemIndex, 0, wbuf, chunkSize);
+    while UsbAspI2C_BUSY(DevAddr) do
+    begin
+      Application.ProcessMessages;
+      if UserCancel then Break;
+    end;
+    if UserCancel then Break;
+    Application.ProcessMessages;
+  end;
+
+  t := Time() - TimeCounter;
+  DecodeDateTime(t, d, d, d, d, d, sec, ms);
+  timeval := (sec * 1000) + ms;
+  if timeval = 0 then timeval := 1;
+  LogPrint(STR_TIME + TimeToStr(t)+' '+
+    IntToStr( Trunc(((cycles*chunkSize) / timeval) * 1000)) +' bytes/s');
+
+  // restore and verify
+  UsbAspI2C_Write(DevAddr, MainForm.ComboAddrType.ItemIndex, 0, backup, chunkSize);
+  while UsbAspI2C_BUSY(DevAddr) do Application.ProcessMessages;
+  FillByte(chunk, chunkSize, 0);
+  UsbAspI2C_Read(DevAddr, MainForm.ComboAddrType.ItemIndex, 0, chunk, chunkSize);
+  RestoreOK := true;
+  for i := 0 to chunkSize-1 do
+    if chunk[i] <> backup[i] then RestoreOK := false;
+  if RestoreOK then LogPrint(STR_I2C_BM_RESTORED)
+  else LogPrint(STR_I2C_BM_RESTORE_FAIL);
+
+  AsProgrammer.Programmer.I2CDeinit;
+  AsProgrammer.Programmer.DevClose;
+  UnlockControl();
+end;
 procedure TMainForm.MenuItemEditSregClick(Sender: TObject);
 begin
   if MainForm.ComboSPICMD.ItemIndex = SPI_CMD_25 then
@@ -3502,6 +3779,10 @@ begin
       TDOMElement(ParentNode).SetAttribute('ch347_spi_speed', '937_5KHz');
     if MainForm.MenuCH347SPIClock468_75KHz.Checked then
       TDOMElement(ParentNode).SetAttribute('ch347_spi_speed', '468_75KHz');
+    TDOMElement(ParentNode).SetAttribute('i2c_speed', IntToStr(GetI2CSpeedMode()));
+    TDOMElement(ParentNode).SetAttribute('spi_mode', IntToStr(GetSPIMode()));
+    TDOMElement(ParentNode).SetAttribute('spi_freq_hz', IntToStr(CH347_SPI_FreqHz));
+    TDOMElement(ParentNode).SetAttribute('spi_data_bits', IntToStr(GetSPIDataBits()));
 
     if MainForm.MenuMW32Khz.Checked then
       TDOMElement(ParentNode).SetAttribute('mw_speed', '32Khz');
@@ -3595,6 +3876,50 @@ begin
         if OptVal = '937_5KHz' then MainForm.MenuCH347SPIClock937_5KHz.Checked := true;
         if OptVal = '468_75KHz' then MainForm.MenuCH347SPIClock468_75KHz.Checked := true;
       end;
+
+      if  Node.Attributes.GetNamedItem('i2c_speed') <> nil then
+      begin
+        OptVal := UTF16ToUTF8(Node.Attributes.GetNamedItem('i2c_speed').NodeValue);
+        if OptVal = '0' then MainForm.MenuI2CSpeed20KHz.Checked := true;
+        if OptVal = '4' then MainForm.MenuI2CSpeed50KHz.Checked := true;
+        if OptVal = '1' then MainForm.MenuI2CSpeed100KHz.Checked := true;
+        if OptVal = '5' then MainForm.MenuI2CSpeed200KHz.Checked := true;
+        if OptVal = '2' then MainForm.MenuI2CSpeed400KHz.Checked := true;
+        if OptVal = '3' then MainForm.MenuI2CSpeed750KHz.Checked := true;
+        if OptVal = '6' then MainForm.MenuI2CSpeed1MHz.Checked := true;
+      end;
+
+      if  Node.Attributes.GetNamedItem('spi_mode') <> nil then
+      begin
+        OptVal := UTF16ToUTF8(Node.Attributes.GetNamedItem('spi_mode').NodeValue);
+        if OptVal = '1' then MainForm.MenuSPIMode1.Checked := true;
+        if OptVal = '2' then MainForm.MenuSPIMode2.Checked := true;
+        if OptVal = '3' then MainForm.MenuSPIMode3.Checked := true;
+      end;
+
+      if  Node.Attributes.GetNamedItem('spi_data_bits') <> nil then
+      begin
+        OptVal := UTF16ToUTF8(Node.Attributes.GetNamedItem('spi_data_bits').NodeValue);
+        if OptVal = '1' then MainForm.MenuSPIDataBits16.Checked := true;
+      end;
+
+      if  Node.Attributes.GetNamedItem('spi_freq_hz') <> nil then
+      begin
+        OptVal := UTF16ToUTF8(Node.Attributes.GetNamedItem('spi_freq_hz').NodeValue);
+        CH347_SPI_FreqHz := StrToIntDef(OptVal, 0);
+        if CH347_SPI_FreqHz > 0 then
+        begin
+          MainForm.MenuCH347SPIClock60MHz.Checked := false;
+          MainForm.MenuCH347SPIClock30MHz.Checked := false;
+          MainForm.MenuCH347SPIClock15MHz.Checked := false;
+          MainForm.MenuCH347SPIClock7_5MHz.Checked := false;
+          MainForm.MenuCH347SPIClock3_75MHz.Checked := false;
+          MainForm.MenuCH347SPIClock1_875MHz.Checked := false;
+          MainForm.MenuCH347SPIClock937_5KHz.Checked := false;
+          MainForm.MenuCH347SPIClock468_75KHz.Checked := false;
+        end;
+      end;
+
 
 
       if  Node.Attributes.GetNamedItem('mw_speed') <> nil then

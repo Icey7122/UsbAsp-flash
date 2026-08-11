@@ -605,7 +605,7 @@ object MainForm: TMainForm
     FocusFrame = True
     NoSizeChange = True
     DrawGridLines = True
-    Version = 'september 30, 2007; � markus stephany, vcl[at]mirkes[dot]de'
+    Version = 'september 30, 2007; � markus stephany, vcl[at]mirkes[dot]de'
     OnChange = MPHexEditorExChange
     DrawGutter3D = False
     ShowRuler = True
@@ -672,13 +672,13 @@ object MainForm: TMainForm
   end
   object GroupFBPanel: TGroupBox
     Left = 160
-    Top = 336
+    Top = 319
     Width = 693
     Height = 84
     Caption = 'FlashBridge VIO'
     TabOrder = 4
     Visible = False
-    Anchors = [akTop, akLeft, akRight]
+    Anchors = [akLeft, akRight]
     object BtnFBConnect: TButton
       Left = 8
       Top = 15
@@ -762,7 +762,7 @@ object MainForm: TMainForm
   end
   object StatusBar: TStatusBar
     Align = alBottom
-    Anchors = [akLeft, akRight, akBottom]
+    Anchors = [akLeft, akRight]
     Left = 0
     Height = 23
     Top = 403
@@ -810,6 +810,7 @@ object MainForm: TMainForm
     Align = alBottom
     Anchors = [akBottom]
     ResizeAnchor = akBottom
+    OnMoved = Splitter1Moved
   end
   object OpenDialog: TOpenDialog
     Filter = '*.*|*.*'
@@ -848,49 +849,109 @@ object MainForm: TMainForm
             Caption = '60 MHz'
             Checked = True
             RadioItem = True
+            OnClick = MenuCH347SPIClockPresetClick
           end
           object MenuCH347SPIClock30MHz: TMenuItem
             Tag = 1
             AutoCheck = True
             Caption = '30 MHz'
             RadioItem = True
+            OnClick = MenuCH347SPIClockPresetClick
           end
           object MenuCH347SPIClock15MHz: TMenuItem
             Tag = 2
             AutoCheck = True
             Caption = '15 MHz'
             RadioItem = True
+            OnClick = MenuCH347SPIClockPresetClick
           end
           object MenuCH347SPIClock7_5MHz: TMenuItem
             Tag = 3
             AutoCheck = True
             Caption = '7.5 MHz'
             RadioItem = True
+            OnClick = MenuCH347SPIClockPresetClick
           end
           object MenuCH347SPIClock3_75MHz: TMenuItem
             Tag = 4
             AutoCheck = True
             Caption = '3.75 MHz'
             RadioItem = True
+            OnClick = MenuCH347SPIClockPresetClick
           end
           object MenuCH347SPIClock1_875MHz: TMenuItem
             Tag = 5
             AutoCheck = True
             Caption = '1.875 MHz'
             RadioItem = True
+            OnClick = MenuCH347SPIClockPresetClick
           end
           object MenuCH347SPIClock937_5KHz: TMenuItem
             Tag = 6
             AutoCheck = True
             Caption = '937.5 KHz'
             RadioItem = True
+            OnClick = MenuCH347SPIClockPresetClick
           end
           object MenuCH347SPIClock468_75KHz: TMenuItem
             Tag = 7
             AutoCheck = True
             Caption = '468.75 KHz'
             RadioItem = True
+            OnClick = MenuCH347SPIClockPresetClick
           end
+          object MenuCH347SPIFreqCustom: TMenuItem
+            Caption = '自定义频率(Hz)...'
+            OnClick = MenuCH347SPIFreqCustomClick
+          end
+        end
+        object MenuSPIMode: TMenuItem
+          Caption = '模式'
+          object MenuSPIMode0: TMenuItem
+            Tag = 0
+            AutoCheck = True
+            Caption = 'Mode 0'
+            Checked = True
+            RadioItem = True
+          end
+          object MenuSPIMode1: TMenuItem
+            Tag = 1
+            AutoCheck = True
+            Caption = 'Mode 1'
+            RadioItem = True
+          end
+          object MenuSPIMode2: TMenuItem
+            Tag = 2
+            AutoCheck = True
+            Caption = 'Mode 2'
+            RadioItem = True
+          end
+          object MenuSPIMode3: TMenuItem
+            Tag = 3
+            AutoCheck = True
+            Caption = 'Mode 3'
+            RadioItem = True
+          end
+        end
+        object MenuSPIDataBits: TMenuItem
+          Caption = '数据位'
+          object MenuSPIDataBits8: TMenuItem
+            Tag = 0
+            AutoCheck = True
+            Caption = '8 bit'
+            Checked = True
+            RadioItem = True
+          end
+          object MenuSPIDataBits16: TMenuItem
+            Tag = 1
+            AutoCheck = True
+            Caption = '16 bit'
+            RadioItem = True
+          end
+        end
+        object MenuSPIGetCfg: TMenuItem
+          Caption = '读取SPI配置'
+          OnClick = MenuSPIGetCfgClick
         end
         object MenuArduinoSPIClock: TMenuItem
           Caption = 'Частота'
@@ -1040,6 +1101,63 @@ object MainForm: TMainForm
         object MenuItemBenchmark: TMenuItem
           Caption = 'Benchmark'
           OnClick = MenuItemBenchmarkClick
+        end
+      end
+      object MenuI2C: TMenuItem
+        Caption = 'I2C'
+        object MenuI2CSpeed: TMenuItem
+          Caption = 'Частота'
+          object MenuI2CSpeed20KHz: TMenuItem
+            Tag = 0
+            AutoCheck = True
+            Caption = '20 KHz'
+            RadioItem = True
+          end
+          object MenuI2CSpeed50KHz: TMenuItem
+            Tag = 4
+            AutoCheck = True
+            Caption = '50 KHz'
+            RadioItem = True
+          end
+          object MenuI2CSpeed100KHz: TMenuItem
+            Tag = 1
+            AutoCheck = True
+            Caption = '100 KHz'
+            Checked = True
+            RadioItem = True
+          end
+          object MenuI2CSpeed200KHz: TMenuItem
+            Tag = 5
+            AutoCheck = True
+            Caption = '200 KHz'
+            RadioItem = True
+          end
+          object MenuI2CSpeed400KHz: TMenuItem
+            Tag = 2
+            AutoCheck = True
+            Caption = '400 KHz'
+            RadioItem = True
+          end
+          object MenuI2CSpeed750KHz: TMenuItem
+            Tag = 3
+            AutoCheck = True
+            Caption = '750 KHz'
+            RadioItem = True
+          end
+          object MenuI2CSpeed1MHz: TMenuItem
+            Tag = 6
+            AutoCheck = True
+            Caption = '1 MHz'
+            RadioItem = True
+          end
+        end
+        object MenuI2CScan: TMenuItem
+          Caption = '总线扫描'
+          OnClick = MenuI2CScanClick
+        end
+        object MenuItemBenchmarkI2C: TMenuItem
+          Caption = 'Benchmark'
+          OnClick = MenuItemBenchmarkI2CClick
         end
       end
       object MenuMicrowire: TMenuItem
