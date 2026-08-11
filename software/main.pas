@@ -39,6 +39,17 @@ type
     Label_StartAddress: TLabel;
     MenuHWFT232H: TMenuItem;
     MenuHWFlashBridge: TMenuItem;
+    GroupFBPanel: TGroupBox;
+    ComboFBPort: TComboBox;
+    BtnFBConnect: TButton;
+    EditFBTarget: TEdit;
+    BtnFBSet: TButton;
+    BtnFB12: TButton;
+    BtnFB18: TButton;
+    BtnFB25: TButton;
+    BtnFB33: TButton;
+    LblFBVIO: TLabel;
+    TimerFBVIO: TTimer;
     MenuFT232SPIClock: TMenuItem;
     MenuFT232SPI30Mhz: TMenuItem;
     MenuFT232SPI6Mhz: TMenuItem;
@@ -178,6 +189,10 @@ type
     procedure MenuHWCH347Click(Sender: TObject);
     procedure MenuHWFT232HClick(Sender: TObject);
     procedure MenuHWFlashBridgeClick(Sender: TObject);
+    procedure BtnFBConnectClick(Sender: TObject);
+    procedure BtnFBSetClick(Sender: TObject);
+    procedure BtnFBPresetClick(Sender: TObject);
+    procedure TimerFBVIOTimer(Sender: TObject);
     procedure MenuHWUSBASPClick(Sender: TObject);
     procedure MenuItemBenchmarkClick(Sender: TObject);
     procedure MenuItemEditSregClick(Sender: TObject);
@@ -261,6 +276,7 @@ implementation
 
 var
   TimeCounter: TDateTime;
+  FBFailCount: integer = 0;
   CurrentLang: string = 'ru';
 
 {$R *.lfm}
@@ -1752,6 +1768,13 @@ end;
 
 procedure SelectHW(programmer: THardwareList);
 begin
+  if (programmer <> CHW_FLASHBRIDGE) and (AsProgrammer.Current_HW = CHW_FLASHBRIDGE) and
+     (AsProgrammer.Programmer is TFlashBridgeHardware) then
+  begin
+    MainForm.TimerFBVIO.Enabled := false;
+    (AsProgrammer.Programmer as TFlashBridgeHardware).VIODisconnect;
+  end;
+
   if programmer = CHW_USBASP then
   begin
     MainForm.MenuSPIClock.Visible:= true;
@@ -1827,7 +1850,12 @@ begin
     MainForm.MenuFT232SPIClock.Visible:= false;
     MainForm.MenuMicrowire.Enabled:= false;
     AsProgrammer.Current_HW := CHW_FLASHBRIDGE;
-  end;
+    MainForm.GroupFBPanel.Visible := true;
+    MainForm.ComboFBPort.Text := FlashBridge_COMPort;
+    MainForm.EditFBTarget.Text := IntToStr(FlashBridge_VIO_mV);
+  end
+  else
+    MainForm.GroupFBPanel.Visible := false;
 
 end;
 
@@ -1960,6 +1988,114 @@ end;
 procedure TMainForm.MenuHWFlashBridgeClick(Sender: TObject);
 begin
   SelectHW(CHW_FLASHBRIDGE);
+end;
+
+function FBFrontHW: TFlashBridgeHardware;
+begin
+  Result := nil;
+  if AsProgrammer.Current_HW = CHW_FLASHBRIDGE then
+    Result := AsProgrammer.Programmer as TFlashBridgeHardware;
+end;
+
+procedure TMainForm.BtnFBConnectClick(Sender: TObject);
+var
+  FB: TFlashBridgeHardware;
+begin
+  FB := FBFrontHW;
+  if FB = nil then Exit;
+  if FB.VIOConnected then
+  begin
+    FB.VIODisconnect;
+    TimerFBVIO.Enabled := false;
+    BtnFBConnect.Caption := '连接';
+    LblFBVIO.Caption := '未连接';
+  end
+  else
+  begin
+    FlashBridge_COMPort := Trim(ComboFBPort.Text);
+    if FlashBridge_COMPort = '' then
+    begin
+      LblFBVIO.Caption := '请先输入 COM 口';
+      Exit;
+    end;
+    if FB.VIOConnect(FlashBridge_COMPort) then
+    begin
+      FBFailCount := 0;
+      BtnFBConnect.Caption := '断开';
+      LblFBVIO.Caption := '已连接';
+      TimerFBVIO.Enabled := true;
+    end
+    else
+      LblFBVIO.Caption := FB.VIOError;
+  end;
+end;
+
+procedure TMainForm.BtnFBSetClick(Sender: TObject);
+var
+  FB: TFlashBridgeHardware;
+  mv: integer;
+begin
+  FB := FBFrontHW;
+  if (FB = nil) or (not FB.VIOConnected) then Exit;
+  if not TryStrToInt(Trim(EditFBTarget.Text), mv) then
+  begin
+    LblFBVIO.Caption := '电压格式错误';
+    Exit;
+  end;
+  if (mv < FB_VIO_MIN_MV) or (mv > FB_VIO_MAX_MV) then
+  begin
+    LblFBVIO.Caption := '范围 1200-3300mV';
+    Exit;
+  end;
+  FlashBridge_VIO_mV := mv;
+  if FB.VIOSetMillivolts(mv) then
+  begin
+    LblFBVIO.Caption := '已设置 ' + IntToStr(mv) + 'mV';
+    TimerFBVIOTimer(Sender);
+  end
+  else
+    LblFBVIO.Caption := FB.VIOError;
+end;
+
+procedure TMainForm.BtnFBPresetClick(Sender: TObject);
+begin
+  EditFBTarget.Text := IntToStr(TButton(Sender).Tag);
+  BtnFBSetClick(Sender);
+end;
+
+procedure TMainForm.TimerFBVIOTimer(Sender: TObject);
+var
+  FB: TFlashBridgeHardware;
+  V, T, D: double;
+  sT: string;
+begin
+  FB := FBFrontHW;
+  if (FB = nil) or (not FB.VIOConnected) then
+  begin
+    TimerFBVIO.Enabled := false;
+    Exit;
+  end;
+  if FB.VIOGetStatus(V, T, D) then
+  begin
+    FBFailCount := 0;
+    if T >= 0 then sT := FormatFloat('0.000', T)
+    else sT := '?';
+    LblFBVIO.Caption := Format('V %s | T %s | %s%%',
+      [FormatFloat('0.000', V), sT, FormatFloat('0.0', D)]);
+  end
+  else
+  begin
+    Inc(FBFailCount);
+    if FBFailCount >= 5 then
+    begin
+      FB.VIODisconnect;
+      TimerFBVIO.Enabled := false;
+      BtnFBConnect.Caption := '连接';
+      LblFBVIO.Caption := '已断开（连续无响应）';
+    end
+    else
+      LblFBVIO.Caption := '无响应: ' + FB.VIOError;
+  end;
 end;
 
 procedure TMainForm.MenuHWUSBASPClick(Sender: TObject);

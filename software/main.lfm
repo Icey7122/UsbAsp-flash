@@ -557,7 +557,7 @@ object MainForm: TMainForm
   object MPHexEditorEx: TMPHexEditorEx
     Cursor = crIBeam
     Left = 160
-    Height = 369
+    Height = 315
     Top = 34
     Width = 693
     CreateBackup = False
@@ -668,6 +668,103 @@ object MainForm: TMainForm
       0
       18
     )
+  end
+  object GroupFBPanel: TGroupBox
+    Left = 160
+    Top = 350
+    Width = 693
+    Height = 50
+    Caption = 'FlashBridge VIO'
+    TabOrder = 4
+    Visible = False
+    object ComboFBPort: TComboBox
+      Left = 8
+      Top = 17
+      Width = 110
+      Height = 22
+      ItemHeight = 14
+      TabOrder = 0
+    end
+    object BtnFBConnect: TButton
+      Left = 124
+      Top = 16
+      Width = 64
+      Height = 22
+      Caption = '连接'
+      TabOrder = 1
+      OnClick = BtnFBConnectClick
+    end
+    object EditFBTarget: TEdit
+      Left = 194
+      Top = 17
+      Width = 56
+      Height = 22
+      TabOrder = 2
+      Text = '2500'
+    end
+    object BtnFBSet: TButton
+      Left = 254
+      Top = 16
+      Width = 56
+      Height = 22
+      Caption = '设置'
+      TabOrder = 3
+      OnClick = BtnFBSetClick
+    end
+    object BtnFB12: TButton
+      Left = 314
+      Top = 16
+      Width = 42
+      Height = 22
+      Caption = '1.2V'
+      Tag = 1200
+      TabOrder = 4
+      OnClick = BtnFBPresetClick
+    end
+    object BtnFB18: TButton
+      Left = 360
+      Top = 16
+      Width = 42
+      Height = 22
+      Caption = '1.8V'
+      Tag = 1800
+      TabOrder = 5
+      OnClick = BtnFBPresetClick
+    end
+    object BtnFB25: TButton
+      Left = 406
+      Top = 16
+      Width = 42
+      Height = 22
+      Caption = '2.5V'
+      Tag = 2500
+      TabOrder = 6
+      OnClick = BtnFBPresetClick
+    end
+    object BtnFB33: TButton
+      Left = 452
+      Top = 16
+      Width = 42
+      Height = 22
+      Caption = '3.3V'
+      Tag = 3300
+      TabOrder = 7
+      OnClick = BtnFBPresetClick
+    end
+    object LblFBVIO: TLabel
+      Left = 500
+      Top = 19
+      Width = 185
+      Height = 17
+      Caption = '未连接'
+    end
+  end
+  object TimerFBVIO: TTimer
+    Enabled = False
+    Interval = 1000
+    OnTimer = TimerFBVIOTimer
+    Left = 8
+    Top = 8
   end
   object StatusBar: TStatusBar
     Left = 0
