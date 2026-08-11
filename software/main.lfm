@@ -571,7 +571,7 @@ object MainForm: TMainForm
     PrintFont.Height = -15
     PrintFont.Name = 'Courier New'
     ZoomOnWheel = False
-    Anchors = [akTop, akLeft, akRight]
+    Anchors = [akTop, akLeft, akRight, akBottom]
     BorderStyle = bsNone
     Font.CharSet = RUSSIAN_CHARSET
     Font.Color = clBlack
@@ -676,7 +676,7 @@ object MainForm: TMainForm
     Caption = 'FlashBridge VIO'
     TabOrder = 4
     Visible = False
-    Anchors = [akTop, akLeft, akRight]
+    Anchors = [akLeft, akRight, akBottom]
     object ComboFBPort: TComboBox
       Left = 8
       Top = 20
@@ -768,6 +768,7 @@ object MainForm: TMainForm
     Top = 8
   end
   object StatusBar: TStatusBar
+    Anchors = [akLeft, akRight, akBottom]
     Left = 0
     Height = 23
     Top = 403
