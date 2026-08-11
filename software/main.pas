@@ -207,7 +207,6 @@ type
     procedure ButtonBlockClick(Sender: TObject);
     procedure ButtonReadIDClick(Sender: TObject);
     function DoSpiReadID: boolean;
-    procedure ReadIDWithVIOLadder;
     procedure ButtonOpenHexClick(Sender: TObject);
     procedure ButtonSaveHexClick(Sender: TObject);
     procedure ButtonCancelClick(Sender: TObject);
@@ -2904,19 +2903,7 @@ end;
 end;
 
 procedure TMainForm.ButtonReadIDClick(Sender: TObject);
-var
-  FB: TFlashBridgeHardware;
 begin
-  if (AsProgrammer.Current_HW = CHW_FLASHBRIDGE) and MainForm.RadioSPI.Checked
-     and (ComboSPICMD.ItemIndex <> SPI_CMD_KB) then
-  begin
-    FB := FBFrontHW;
-    if (FB <> nil) and FB.VIOConnected then
-    begin
-      ReadIDWithVIOLadder;
-      Exit;
-    end;
-  end;
   DoSpiReadID;
 end;
 
@@ -3007,51 +2994,6 @@ begin
     UnlockControl();
   end;
 
-end;
-
-procedure TMainForm.ReadIDWithVIOLadder;
-const
-  Steps: array[0..2] of integer = (1800, 2500, 3300);
-  AttemptsPerVoltage = 3;
-var
-  FB: TFlashBridgeHardware;
-  i, a: integer;
-begin
-  FB := FBFrontHW;
-  if FB = nil then Exit;
-  TimerFBVIO.Enabled := false; // 探测期间暂停轮询，避免串口干扰
-  try
-    for i := 0 to High(Steps) do
-    begin
-      if FB.VIOSetMillivolts(Steps[i]) then
-      begin
-        FlashBridge_VIO_mV := Steps[i];
-        ComboFBVolt.Text := IntToStr(Steps[i]);
-        FB.VIOWaitStable(Steps[i], 2000);
-        for a := 1 to AttemptsPerVoltage do
-        begin
-          LblFBVIO.Caption := Format('检测中 %dmV (第%d次)', [Steps[i], a]);
-          Application.ProcessMessages;
-          if DoSpiReadID then
-          begin
-            LblFBVIO.Caption := Format('已识别 @ %dmV', [Steps[i]]);
-            Exit;
-          end;
-          if a < AttemptsPerVoltage then Sleep(150);
-        end;
-      end;
-    end;
-    // 全部未识别，回到 1.8V
-    if FB.VIOSetMillivolts(1800) then
-    begin
-      FlashBridge_VIO_mV := 1800;
-      ComboFBVolt.Text := '1800';
-      FB.VIOWaitStable(1800, 2000);
-    end;
-    LblFBVIO.Caption := '未识别，已回到 1800mV';
-  finally
-    if FB.VIOConnected then TimerFBVIO.Enabled := true;
-  end;
 end;
 
 procedure TMainForm.ButtonOpenHexClick(Sender: TObject);
