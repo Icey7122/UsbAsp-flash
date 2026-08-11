@@ -2005,32 +2005,32 @@ end;
 
 procedure CheckChipVIOVoltage(const ChipName: string; VCCMV: integer);
 var
-  FB: TFlashBridgeHardware;
+  RecMV: integer;
 begin
   if (AsProgrammer.Current_HW <> CHW_FLASHBRIDGE) or
      (not (AsProgrammer.Programmer is TFlashBridgeHardware)) then Exit;
-  FB := AsProgrammer.Programmer as TFlashBridgeHardware;
-  if not FB.VIOConnected then Exit;
+  if not (AsProgrammer.Programmer as TFlashBridgeHardware).VIOConnected then Exit;
 
   // 优先 chiplist 的 vcc 属性，其次 _1.8V 后缀
-  if VCCMV = 0 then
+  RecMV := VCCMV;
+  if RecMV = 0 then
   begin
-    if Pos('1.8V', UpperCase(ChipName)) > 0 then VCCMV := 1800
+    if Pos('1.8V', UpperCase(ChipName)) > 0 then RecMV := 1800
     else Exit;
   end;
 
-  if (VCCMV < FB_VIO_MIN_MV) or (VCCMV > FB_VIO_MAX_MV) then
+  if (RecMV < FB_VIO_MIN_MV) or (RecMV > FB_VIO_MAX_MV) then
   begin
-    MainForm.LblFBVIO.Caption := Format('VIO 不支持 %dmV', [VCCMV]);
+    MainForm.LblFBVIO.Caption := Format('该芯片需要 %dmV，超出 VIO 范围(1200-3300)', [RecMV]);
     Exit;
   end;
 
-  if FB.VIOSetMillivolts(VCCMV) then
-  begin
-    FlashBridge_VIO_mV := VCCMV;
-    MainForm.ComboFBVolt.Text := IntToStr(VCCMV);
-    MainForm.LblFBVIO.Caption := Format('已按芯片电压自动设为 %dmV', [VCCMV]);
-  end;
+  // 只推荐，不自动应用：由用户决定是否点"设置"
+  MainForm.ComboFBVolt.Text := IntToStr(RecMV);
+  if RecMV < 1400 then
+    MainForm.LblFBVIO.Caption := Format('推荐电压 %dmV（低于1.4V，应用后将限时保持），点设置应用', [RecMV])
+  else
+    MainForm.LblFBVIO.Caption := Format('推荐电压 %dmV，点设置应用', [RecMV]);
 end;
 
 procedure TMainForm.BtnFBConnectClick(Sender: TObject);
