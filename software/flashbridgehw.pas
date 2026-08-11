@@ -178,22 +178,30 @@ end;
 
 function TFlashBridgeHardware.ReadUntilPrompt(TimeoutMs: integer): string;
 var
-  S: string;
+  x, old: integer;
+  buf: array[0..511] of byte;
   Elapsed: integer;
 begin
   Result := '';
   Elapsed := 0;
   while Elapsed < TimeoutMs do
   begin
-    if FSerial.CanRead(50) then
+    x := FSerial.WaitingData;
+    if x > 0 then
     begin
-      S := FSerial.RecvString(100);
-      Result := Result + S;
-      if Pos(FB_PROMPT, Result) > 0 then Exit;
+      if x > 512 then x := 512;
+      x := FSerial.RecvBuffer(@buf[0], x);
+      if x > 0 then
+      begin
+        old := Length(Result);
+        SetLength(Result, old + x);
+        Move(buf[0], Result[old + 1], x);
+        if Pos(FB_PROMPT, Result) > 0 then Exit;
+      end;
     end
     else
-      Sleep(20);
-    Elapsed := Elapsed + 70;
+      Sleep(5);
+    Elapsed := Elapsed + 5;
   end;
 end;
 
