@@ -49,6 +49,7 @@ type
     BtnFB25: TButton;
     BtnFB33: TButton;
     LblFBVIO: TLabel;
+    BtnFBScan: TButton;
     TimerFBVIO: TTimer;
     MenuFT232SPIClock: TMenuItem;
     MenuFT232SPI30Mhz: TMenuItem;
@@ -192,6 +193,7 @@ type
     procedure BtnFBConnectClick(Sender: TObject);
     procedure BtnFBSetClick(Sender: TObject);
     procedure BtnFBPresetClick(Sender: TObject);
+    procedure BtnFBScanClick(Sender: TObject);
     procedure TimerFBVIOTimer(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -2018,8 +2020,15 @@ begin
     FlashBridge_COMPort := Trim(ComboFBPort.Text);
     if FlashBridge_COMPort = '' then
     begin
-      LblFBVIO.Caption := '请先输入 COM 口';
-      Exit;
+      LblFBVIO.Caption := '正在检测 COM 口...';
+      Application.ProcessMessages;
+      FlashBridge_COMPort := FB.FindV002Port;
+      if FlashBridge_COMPort = '' then
+      begin
+        LblFBVIO.Caption := '未找到 FlashBridge';
+        Exit;
+      end;
+      ComboFBPort.Text := FlashBridge_COMPort;
     end;
     if FB.VIOConnect(FlashBridge_COMPort) then
     begin
@@ -2031,6 +2040,31 @@ begin
     else
       LblFBVIO.Caption := FB.VIOError;
   end;
+end;
+
+procedure TMainForm.BtnFBScanClick(Sender: TObject);
+var
+  FB: TFlashBridgeHardware;
+  Port: string;
+begin
+  FB := FBFrontHW;
+  if FB = nil then Exit;
+  if FB.VIOConnected then
+  begin
+    LblFBVIO.Caption := '请先断开再自动检测';
+    Exit;
+  end;
+  LblFBVIO.Caption := '正在检测 COM 口...';
+  Application.ProcessMessages;
+  Port := FB.FindV002Port;
+  if Port = '' then
+  begin
+    LblFBVIO.Caption := '未找到 FlashBridge';
+    Exit;
+  end;
+  ComboFBPort.Text := Port;
+  FlashBridge_COMPort := Port;
+  BtnFBConnectClick(Sender);
 end;
 
 procedure TMainForm.BtnFBSetClick(Sender: TObject);

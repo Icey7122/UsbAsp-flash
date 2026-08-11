@@ -5,7 +5,7 @@ unit flashbridgehw;
 interface
 
 uses
-  Classes, SysUtils, basehw, Synaser, ch347hw, fbvio;
+  Classes, SysUtils, basehw, Synaser, ch347hw, fbvio, Registry;
 
 type
   TFlashBridgeHardware = class(TBaseHardware)
@@ -15,6 +15,8 @@ type
     FVIOConnected: boolean;
     FVIOError: string;
     function ReadUntilPrompt(TimeoutMs: integer): string;
+    function ReadPromptFrom(ser: TBlockSerial; TimeoutMs: integer): string;
+    function ProbePort(const Port: string): boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -51,6 +53,7 @@ type
     procedure VIODisconnect;
     function VIOGetStatus(var V, Target, Duty: double): boolean;
     function VIOSetMillivolts(mv: integer): boolean;
+    function FindV002Port: string;
     property VIOConnected: boolean read FVIOConnected;
     property VIOError: string read FVIOError;
   end;
@@ -177,6 +180,12 @@ begin
 end;
 
 function TFlashBridgeHardware.ReadUntilPrompt(TimeoutMs: integer): string;
+begin
+  Result := ReadPromptFrom(FSerial, TimeoutMs);
+end;
+
+function TFlashBridgeHardware.ReadPromptFrom(ser: TBlockSerial;
+  TimeoutMs: integer): string;
 var
   x, old: integer;
   buf: array[0..511] of byte;
@@ -186,11 +195,11 @@ begin
   Elapsed := 0;
   while Elapsed < TimeoutMs do
   begin
-    x := FSerial.WaitingData;
+    x := ser.WaitingData;
     if x > 0 then
     begin
       if x > 512 then x := 512;
-      x := FSerial.RecvBuffer(@buf[0], x);
+      x := ser.RecvBuffer(@buf[0], x);
       if x > 0 then
       begin
         old := Length(Result);
@@ -202,6 +211,64 @@ begin
     else
       Sleep(5);
     Elapsed := Elapsed + 5;
+  end;
+end;
+
+function TFlashBridgeHardware.ProbePort(const Port: string): boolean;
+var
+  Probe: TBlockSerial;
+  S: string;
+begin
+  Result := false;
+  Probe := TBlockSerial.Create;
+  Probe.RaiseExcept := false;
+  try
+    Probe.Connect(Port);
+    if Probe.LastError <> 0 then Exit;
+    Probe.Config(FB_BAUD, 8, 'N', SB1, false, false);
+    Probe.Purge;
+    Probe.SendString(FB_CMD_EXIT); // 若已唤醒则先回静默
+    Sleep(150);
+    Probe.Purge;
+    Probe.SendString(FB_WAKE_SEQUENCE);
+    S := ReadPromptFrom(Probe, 800);
+    Result := Pos(FB_PROMPT, S) > 0;
+  finally
+    Probe.CloseSocket;
+    Probe.Free;
+  end;
+end;
+
+function TFlashBridgeHardware.FindV002Port: string;
+var
+  Reg: TRegistry;
+  Names: TStringList;
+  Ports: TStringList;
+  i: integer;
+begin
+  Result := '';
+  Ports := TStringList.Create;
+  Reg := TRegistry.Create;
+  Names := TStringList.Create;
+  try
+    Reg.RootKey := HKEY_LOCAL_MACHINE;
+    if Reg.OpenKeyReadOnly('\HARDWARE\DEVICEMAP\SERIALCOMM') then
+    begin
+      Reg.GetValueNames(Names);
+      for i := 0 to Names.Count - 1 do
+        Ports.Add(Reg.ReadString(Names[i]));
+      Reg.CloseKey;
+    end;
+    for i := 0 to Ports.Count - 1 do
+      if ProbePort(Ports[i]) then
+      begin
+        Result := Ports[i];
+        Exit;
+      end;
+  finally
+    Names.Free;
+    Reg.Free;
+    Ports.Free;
   end;
 end;
 

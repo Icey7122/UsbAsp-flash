@@ -755,12 +755,22 @@ object MainForm: TMainForm
     end
     object LblFBVIO: TLabel
       Layout = tlCenter
-      Anchors = [akLeft, akRight]
+      Anchors = [akLeft]
       Left = 500
       Top = 28
       Width = 185
       Height = 17
       Caption = '未连接'
+    end
+    object BtnFBScan: TButton
+      Left = 690
+      Top = 15
+      Width = 56
+      Height = 22
+      Caption = '??'
+      Anchors = [akTop, akRight]
+      TabOrder = 8
+      OnClick = BtnFBScanClick
     end
   end
   object TimerFBVIO: TTimer
