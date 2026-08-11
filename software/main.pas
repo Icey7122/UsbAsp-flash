@@ -2920,9 +2920,10 @@ end;
 procedure TMainForm.ReadIDWithVIOLadder;
 const
   Steps: array[0..2] of integer = (1800, 2500, 3300);
+  AttemptsPerVoltage = 3;
 var
   FB: TFlashBridgeHardware;
-  i: integer;
+  i, a: integer;
 begin
   FB := FBFrontHW;
   if FB = nil then Exit;
@@ -2934,13 +2935,17 @@ begin
       begin
         FlashBridge_VIO_mV := Steps[i];
         ComboFBVolt.Text := IntToStr(Steps[i]);
-        LblFBVIO.Caption := Format('检测中 %dmV', [Steps[i]]);
         FB.VIOWaitStable(Steps[i], 2000);
-        Application.ProcessMessages;
-        if DoSpiReadID then
+        for a := 1 to AttemptsPerVoltage do
         begin
-          LblFBVIO.Caption := Format('已识别 @ %dmV', [Steps[i]]);
-          Exit;
+          LblFBVIO.Caption := Format('检测中 %dmV (第%d次)', [Steps[i], a]);
+          Application.ProcessMessages;
+          if DoSpiReadID then
+          begin
+            LblFBVIO.Caption := Format('已识别 @ %dmV', [Steps[i]]);
+            Exit;
+          end;
+          if a < AttemptsPerVoltage then Sleep(150);
         end;
       end;
     end;
