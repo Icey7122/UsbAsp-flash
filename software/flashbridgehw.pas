@@ -53,6 +53,7 @@ type
     procedure VIODisconnect;
     function VIOGetStatus(var V, Target, Duty: double): boolean;
     function VIOSetMillivolts(mv: integer): boolean;
+    function VIOWaitStable(TargetMV: integer; TimeoutMs: integer): boolean;
     function FindV002Port: string;
     property VIOConnected: boolean read FVIOConnected;
     property VIOError: string read FVIOError;
@@ -342,6 +343,35 @@ begin
   S := ReadUntilPrompt(700);
   Result := ParseVIOStatus(S, V, T, D, Err);
   if not Result then FVIOError := Err;
+end;
+
+function TFlashBridgeHardware.VIOWaitStable(TargetMV: integer;
+  TimeoutMs: integer): boolean;
+var
+  V, T, D: double;
+  Elapsed: integer;
+  StableCount: integer;
+begin
+  Result := false;
+  Elapsed := 0;
+  StableCount := 0;
+  while Elapsed < TimeoutMs do
+  begin
+    if VIOGetStatus(V, T, D) then
+    begin
+      if Abs(V * 1000 - TargetMV) < 20 then
+        Inc(StableCount)
+      else
+        StableCount := 0;
+      if StableCount >= 2 then
+      begin
+        Result := true;
+        Exit;
+      end;
+    end;
+    Sleep(50);
+    Elapsed := Elapsed + 50;
+  end;
 end;
 
 end.

@@ -2915,6 +2915,7 @@ begin
         FlashBridge_VIO_mV := Steps[i];
         ComboFBVolt.Text := IntToStr(Steps[i]);
         LblFBVIO.Caption := Format('检测中 %dmV', [Steps[i]]);
+        FB.VIOWaitStable(Steps[i], 2000);
         Application.ProcessMessages;
         if DoSpiReadID then
         begin
@@ -2928,6 +2929,7 @@ begin
     begin
       FlashBridge_VIO_mV := 1800;
       ComboFBVolt.Text := '1800';
+      FB.VIOWaitStable(1800, 2000);
     end;
     LblFBVIO.Caption := '未识别，已回到 1800mV';
   finally
