@@ -2034,6 +2034,7 @@ begin
     FB.VIODisconnect;
     TimerFBVIO.Enabled := false;
     FBHoldUntil := 0;
+    BtnFBSet.Enabled := true;
     BtnFBConnect.Caption := '连接';
     LblFBVIO.Caption := '未连接';
   end
@@ -2074,6 +2075,11 @@ var
 begin
   FB := FBFrontHW;
   if (FB = nil) or (not FB.VIOConnected) then Exit;
+  if (FBHoldUntil <> 0) and (FBHoldUntil > Now) then
+  begin
+    LblFBVIO.Caption := '保持期间不能设置电压';
+    Exit;
+  end;
   if not TryStrToInt(Trim(ComboFBVolt.Text), mv) then
   begin
     LblFBVIO.Caption := '电压格式错误';
@@ -2094,6 +2100,7 @@ begin
     // 低于 1.4V 时 V002 可能收不到命令，用固件限时保持保证自动恢复
     FBHoldUntil := Now + holdSec / SecsPerDay;
     FBHoldMV := mv;
+    BtnFBSet.Enabled := false;
     if FB.VIOSetMillivoltsHold(mv, holdSec) then
       LblFBVIO.Caption := Format('保持中 %dmV | 剩余 %ds', [mv, holdSec])
     else
@@ -2103,6 +2110,7 @@ begin
   else
   begin
     FBHoldUntil := 0;
+    BtnFBSet.Enabled := true;
     if FB.VIOSetMillivolts(mv) then
     begin
       LblFBVIO.Caption := '已设置 ' + IntToStr(mv) + 'mV';
@@ -2131,6 +2139,7 @@ begin
       else
       begin
         FBHoldUntil := 0;
+        BtnFBSet.Enabled := true;
         LblFBVIO.Caption := '已到期，请重新连接确认';
       end;
       Exit;
@@ -2150,10 +2159,12 @@ begin
     else
     begin
       FBHoldUntil := 0;
+      BtnFBSet.Enabled := true;
       if FB.VIOGetStatus(V, T, D) then
         LblFBVIO.Caption := Format('已恢复 V %s', [FormatFloat('0.000', V)])
       else
       begin
+        BtnFBSet.Enabled := true;
         LblFBVIO.Caption := '已到期，电压应已自动恢复，请重新连接确认';
         TimerFBVIO.Enabled := false;
       end;
