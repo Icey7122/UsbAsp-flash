@@ -1,4 +1,5 @@
 object MainForm: TMainForm
+  OnResize = FormResize
   Left = 501
   Height = 541
   Top = 209
@@ -676,7 +677,7 @@ object MainForm: TMainForm
     Caption = 'FlashBridge VIO'
     TabOrder = 4
     Visible = False
-    Anchors = [akLeft, akRight, akBottom]
+    Anchors = [akTop, akLeft, akRight]
     object ComboFBPort: TComboBox
       Left = 8
       Top = 20

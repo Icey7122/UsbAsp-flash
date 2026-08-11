@@ -193,6 +193,8 @@ type
     procedure BtnFBSetClick(Sender: TObject);
     procedure BtnFBPresetClick(Sender: TObject);
     procedure TimerFBVIOTimer(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+    procedure AlignFBPanel;
     procedure MenuHWUSBASPClick(Sender: TObject);
     procedure MenuItemBenchmarkClick(Sender: TObject);
     procedure MenuItemEditSregClick(Sender: TObject);
@@ -2098,6 +2100,16 @@ begin
   end;
 end;
 
+procedure TMainForm.FormResize(Sender: TObject);
+begin
+  AlignFBPanel;
+end;
+
+procedure TMainForm.AlignFBPanel;
+begin
+  GroupFBPanel.Top := GroupChipSettings.Top + GroupChipSettings.Height - GroupFBPanel.Height;
+end;
+
 procedure TMainForm.MenuHWUSBASPClick(Sender: TObject);
 begin
   SelectHW(CHW_USBASP);
@@ -2990,6 +3002,7 @@ begin
   MPHexEditorEx.NoSizeChange := true;
   MPHexEditorEx.InsertMode := false;
   LoadOptions(SettingsFile);
+  AlignFBPanel;
   LoadLangList();
 end;
 
