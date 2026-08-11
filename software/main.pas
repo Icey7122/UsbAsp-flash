@@ -15,7 +15,7 @@ uses
   XMLRead, XMLWrite, DOM, msgstr, Translations, LCLProc, LCLType, LCLTranslator,
   LResources, MPHexEditorEx, MPHexEditor, search, sregedit,
   utilfunc, findchip, DateUtils, lazUTF8,
-  pascalc, ScriptsFunc, ScriptEdit, baseHW, UsbAspHW, ch341hw, ch347hw, avrisphw, arduinohw;
+  pascalc, ScriptsFunc, ScriptEdit, baseHW, UsbAspHW, ch341hw, ch347hw, avrisphw, arduinohw, flashbridgehw, fbvio;
 
 type
 
@@ -38,6 +38,7 @@ type
     Label6: TLabel;
     Label_StartAddress: TLabel;
     MenuHWFT232H: TMenuItem;
+    MenuHWFlashBridge: TMenuItem;
     MenuFT232SPIClock: TMenuItem;
     MenuFT232SPI30Mhz: TMenuItem;
     MenuFT232SPI6Mhz: TMenuItem;
@@ -176,6 +177,7 @@ type
     procedure MenuHWCH341AClick(Sender: TObject);
     procedure MenuHWCH347Click(Sender: TObject);
     procedure MenuHWFT232HClick(Sender: TObject);
+    procedure MenuHWFlashBridgeClick(Sender: TObject);
     procedure MenuHWUSBASPClick(Sender: TObject);
     procedure MenuItemBenchmarkClick(Sender: TObject);
     procedure MenuItemEditSregClick(Sender: TObject);
@@ -251,6 +253,8 @@ var
 
   Arduino_COMPort: string;
   Arduino_BaudRate: integer = 921600;
+  FlashBridge_COMPort: string;
+  FlashBridge_VIO_mV: integer = 2500;
 
 implementation
 
@@ -1814,6 +1818,17 @@ begin
     AsProgrammer.Current_HW := CHW_FT232H;
   end;
 
+  if programmer = CHW_FLASHBRIDGE then
+  begin
+    MainForm.MenuCH347SPIClock.Visible:= true;
+    MainForm.MenuSPIClock.Visible:= false;
+    MainForm.MenuAVRISPSPIClock.Visible:= false;
+    MainForm.MenuArduinoSPIClock.Visible:= false;
+    MainForm.MenuFT232SPIClock.Visible:= false;
+    MainForm.MenuMicrowire.Enabled:= false;
+    AsProgrammer.Current_HW := CHW_FLASHBRIDGE;
+  end;
+
 end;
 
 procedure LockControl;
@@ -1940,6 +1955,11 @@ end;
 procedure TMainForm.MenuHWFT232HClick(Sender: TObject);
 begin
   SelectHW(CHW_FT232H);
+end;
+
+procedure TMainForm.MenuHWFlashBridgeClick(Sender: TObject);
+begin
+  SelectHW(CHW_FLASHBRIDGE);
 end;
 
 procedure TMainForm.MenuHWUSBASPClick(Sender: TObject);
@@ -2824,6 +2844,7 @@ begin
   AsProgrammer.AddHW(TArduinoHardware.Create);
   AsProgrammer.AddHW(TFT232HHardware.Create);
   AsProgrammer.AddHW(TCH347Hardware.Create);
+  AsProgrammer.AddHW(TFlashBridgeHardware.Create);
 
   LoadChipList(ChipListFile);
   RomF := TMemoryStream.Create;
@@ -3223,9 +3244,13 @@ begin
       TDOMElement(ParentNode).SetAttribute('hw', 'arduino');
     if MainForm.MenuHWFT232H.Checked then
       TDOMElement(ParentNode).SetAttribute('hw', 'ft232h');
+    if MainForm.MenuHWFlashBridge.Checked then
+      TDOMElement(ParentNode).SetAttribute('hw', 'flashbridge');
 
     TDOMElement(ParentNode).SetAttribute('arduino_comport', Arduino_COMPort);
     TDOMElement(ParentNode).SetAttribute('arduino_baudrate', IntToStr(Arduino_BaudRate));
+    TDOMElement(ParentNode).SetAttribute('flashbridge_comport', FlashBridge_COMPort);
+    TDOMElement(ParentNode).SetAttribute('flashbridge_vio_mv', IntToStr(FlashBridge_VIO_mV));
 
     Node.Appendchild(parentNode);
 
@@ -3342,6 +3367,12 @@ begin
           SelectHW(CHW_FT232H);
         end;
 
+        if OptVal = 'flashbridge' then
+        begin
+          MainForm.MenuHWFlashBridge.Checked := true;
+          SelectHW(CHW_FLASHBRIDGE);
+        end;
+
 
       end;
 
@@ -3358,6 +3389,18 @@ begin
         OptVal := UTF16ToUTF8(Node.Attributes.GetNamedItem('arduino_baudrate').NodeValue);
 
         Arduino_BaudRate := StrToInt(OptVal);
+      end;
+
+      if  Node.Attributes.GetNamedItem('flashbridge_comport') <> nil then
+      begin
+        OptVal := UTF16ToUTF8(Node.Attributes.GetNamedItem('flashbridge_comport').NodeValue);
+        FlashBridge_COMPort := OptVal;
+      end;
+
+      if  Node.Attributes.GetNamedItem('flashbridge_vio_mv') <> nil then
+      begin
+        OptVal := UTF16ToUTF8(Node.Attributes.GetNamedItem('flashbridge_vio_mv').NodeValue);
+        FlashBridge_VIO_mV := StrToInt(OptVal);
       end;
 
     end;

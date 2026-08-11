@@ -1018,6 +1018,12 @@ object MainForm: TMainForm
         RadioItem = True
         OnClick = MenuHWFT232HClick
       end
+      object MenuHWFlashBridge: TMenuItem
+        AutoCheck = True
+        Caption = 'FlashBridge'
+        RadioItem = True
+        OnClick = MenuHWFlashBridgeClick
+      end
     end
     object ScriptsMenuItem: TMenuItem
       Caption = 'Скрипты'
