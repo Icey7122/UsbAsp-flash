@@ -270,6 +270,8 @@ var
   Arduino_BaudRate: integer = 921600;
   FlashBridge_VIO_mV: integer = 2500;
 
+procedure CheckChipVIOVoltage(const ChipName: string);
+
 implementation
 
 
@@ -1993,6 +1995,24 @@ begin
   Result := nil;
   if AsProgrammer.Current_HW = CHW_FLASHBRIDGE then
     Result := AsProgrammer.Programmer as TFlashBridgeHardware;
+end;
+
+procedure CheckChipVIOVoltage(const ChipName: string);
+var
+  FB: TFlashBridgeHardware;
+begin
+  if (Pos('1.8V', UpperCase(ChipName)) > 0) and
+     (AsProgrammer.Current_HW = CHW_FLASHBRIDGE) and
+     (AsProgrammer.Programmer is TFlashBridgeHardware) then
+  begin
+    FB := AsProgrammer.Programmer as TFlashBridgeHardware;
+    if FB.VIOConnected and FB.VIOSetMillivolts(1800) then
+    begin
+      FlashBridge_VIO_mV := 1800;
+      MainForm.ComboFBVolt.Text := '1800';
+      MainForm.LblFBVIO.Caption := '已自动设为 1800mV (1.8V 芯片)';
+    end;
+  end;
 end;
 
 procedure TMainForm.BtnFBConnectClick(Sender: TObject);

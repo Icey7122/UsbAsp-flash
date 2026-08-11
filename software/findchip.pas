@@ -194,6 +194,7 @@ begin
 
 
                 MainForm.LabelChipName.Caption := CurrentICParam.Name;
+                CheckChipVIOVoltage(CurrentICParam.Name);
 
                 if CurrentICParam.MWAddLen > 0 then
                   MainForm.ComboMWBitLen.Text := IntToStr(CurrentICParam.MWAddLen)
