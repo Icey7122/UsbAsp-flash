@@ -24,9 +24,11 @@
     </i18n>
     <VersionInfo>
       <UseVersionInfo Value="True"/>
-      <AutoIncrementBuild Value="True"/>
+      <AutoIncrementBuild Value="False"/>
       <MajorVersionNr Value="2"/>
-      <BuildNr Value="12"/>
+      <MinorVersionNr Value="1"/>
+      <RevisionNr Value="2"/>
+      <BuildNr Value="0"/>
       <Language Value="0419"/>
     </VersionInfo>
     <MacroValues Count="2">
