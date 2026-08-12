@@ -2,7 +2,7 @@
 
 [English](README_EN.md) | [简体中文](README.md)
 
-基于 [nofeletru/UsbAsp-flash](https://github.com/nofeletru/UsbAsp-flash) 的分支，支持 SPI、I2C、MicroWire 协议的存储芯片编程。
+基于 [nofeletru/UsbAsp-flash](https://github.com/nofeletru/UsbAsp-flash) 的分支，支持 SPI、I2C 协议的存储芯片编程。
 
 支持的编程器：
 - CH341
@@ -15,7 +15,7 @@
 
 ## 本分支修改
 
-- 新增 FlashBridge 编程器：CH347 负责 SPI/I2C/MicroWire 时序，CH32V002 通过 CH347 的 UART 虚拟串口控制 VIO 电压
+- 新增 FlashBridge 编程器：CH347 负责 SPI/I2C 时序，CH32V002 通过 CH347 的 UART 虚拟串口控制 VIO 电压
 - 修复 CH347 的 I2C ACK 检测（0x80），刷写中断后 SDA 不再卡死
 - 更新 chiplist.xml（新增 vcc 电压信息）、CH34X 驱动与 CH341DLL/CH347DLL
 

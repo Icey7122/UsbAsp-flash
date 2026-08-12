@@ -2,7 +2,7 @@
 
 [English](README_EN.md) | [简体中文](README.md)
 
-A fork of [nofeletru/UsbAsp-flash](https://github.com/nofeletru/UsbAsp-flash) for programming memory chips over the SPI, I2C and MicroWire protocols.
+A fork of [nofeletru/UsbAsp-flash](https://github.com/nofeletru/UsbAsp-flash) for programming memory chips over the SPI and I2C protocols.
 
 Supported programmers:
 - CH341
@@ -15,7 +15,7 @@ Supported programmers:
 
 ## Changes in this fork
 
-- New FlashBridge backend: CH347 handles SPI/I2C/MicroWire timing, CH32V002 controls the VIO voltage via the CH347 UART virtual COM port
+- New FlashBridge backend: CH347 handles SPI/I2C timing, CH32V002 controls the VIO voltage via the CH347 UART virtual COM port
 - Fixed CH347 I2C ACK detection (0x80); the SDA line no longer hangs after an interrupted write
 - Updated chiplist.xml (added vcc voltage info), CH34X drivers and CH341DLL/CH347DLL
 
