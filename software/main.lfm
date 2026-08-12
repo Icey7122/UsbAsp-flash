@@ -792,8 +792,8 @@ object MainForm: TMainForm
     Width = 853
     Align = alBottom
     Lines.Strings = (
-      'AsProgrammer v2.1.0'
-      'https://github.com/nofeletru/UsbAsp-flash'
+      'AsProgrammer FlashBridge v2.1.2'
+      'https://github.com/Icey7122/UsbAsp-flash'
     )
     ParentFont = False
     PopupMenu = LogPopupMenu
